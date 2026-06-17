@@ -125,6 +125,7 @@ function toRow(input: ExpertInput) {
     profile_image_url: input.profileImageUrl ? input.profileImageUrl.trim() : null,
     greeting: input.greeting ? input.greeting.trim() : null,
     biography: input.biography,
+    sections: input.sections,
   };
 }
 

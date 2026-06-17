@@ -2,16 +2,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
 import {
   mapStartupFollowupRow,
-  type Milestone,
   type StartupFollowup,
   type StartupFollowupRow,
 } from '@/types/startupFollowup';
 import type { StartupFollowupInput } from '@/schemas/startupFollowup';
 
 /**
- * 스타트업 후속 보고 훅 (6_startups.md startup_followups).
- * due_date 오름차순 조회 + 추가/삭제 + 제출여부/마일스톤 토글.
- * DB CHECK 상 submitted_at 은 is_submitted=true 일 때만 값이 있어야 한다(여기서 동기화).
+ * 스타트업 후속관리 훅 (6_startups.md startup_followups).
+ * 등록/수정/삭제 + 제출 완료 토글. 제출 자료는 복수 첨부파일(files jsonb).
  * (소프트삭제 없는 종속 이력 → 실제 DELETE. 작성 RLS: 0017)
  */
 const TABLE = 'startup_followups';
@@ -25,11 +23,21 @@ export function useStartupFollowups(startupId: string | undefined) {
         .from(TABLE)
         .select('*')
         .eq('startup_id', startupId as string)
-        .order('due_date', { ascending: true });
+        .order('created_at', { ascending: false });
       if (error) throw error;
       return (data as StartupFollowupRow[]).map(mapStartupFollowupRow);
     },
   });
+}
+
+function toRow(input: StartupFollowupInput) {
+  return {
+    title: input.title.trim(),
+    report_type: input.reportType,
+    reporting_period: input.reportingPeriod.trim(),
+    comment: input.comment.trim() ? input.comment.trim() : null,
+    files: input.files,
+  };
 }
 
 export function useStartupFollowupMutations(startupId: string) {
@@ -40,36 +48,30 @@ export function useStartupFollowupMutations(startupId: string) {
     mutationFn: async (input: StartupFollowupInput) => {
       const { error } = await supabase.from(TABLE).insert({
         startup_id: startupId,
-        title: input.title.trim(),
-        report_type: input.reportType,
-        reporting_period: input.reportingPeriod.trim(),
-        due_date: input.dueDate,
-        file_url: input.fileUrl ? input.fileUrl.trim() : null,
-        is_submitted: input.isSubmitted,
-        submitted_at: input.isSubmitted ? new Date().toISOString() : null,
-        milestones: input.milestones,
+        ...toRow(input),
+        is_submitted: false,
+        submitted_at: null,
       });
       if (error) throw error;
     },
     onSuccess: invalidate,
   });
 
-  // 제출 여부 토글 (CHECK 동기화: submitted_at)
+  const update = useMutation({
+    mutationFn: async ({ id, input }: { id: string; input: StartupFollowupInput }) => {
+      const { error } = await supabase.from(TABLE).update(toRow(input)).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+
+  // 제출 완료 토글 (CHECK 동기화: submitted_at)
   const setSubmitted = useMutation({
     mutationFn: async ({ id, submitted }: { id: string; submitted: boolean }) => {
       const { error } = await supabase
         .from(TABLE)
         .update({ is_submitted: submitted, submitted_at: submitted ? new Date().toISOString() : null })
         .eq('id', id);
-      if (error) throw error;
-    },
-    onSuccess: invalidate,
-  });
-
-  // 마일스톤 달성 토글
-  const setMilestones = useMutation({
-    mutationFn: async ({ id, milestones }: { id: string; milestones: Milestone[] }) => {
-      const { error } = await supabase.from(TABLE).update({ milestones }).eq('id', id);
       if (error) throw error;
     },
     onSuccess: invalidate,
@@ -83,5 +85,5 @@ export function useStartupFollowupMutations(startupId: string) {
     onSuccess: invalidate,
   });
 
-  return { create, setSubmitted, setMilestones, remove };
+  return { create, update, setSubmitted, remove };
 }

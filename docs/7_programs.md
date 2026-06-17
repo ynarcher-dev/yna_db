@@ -59,6 +59,8 @@ interface Program {
 *   **운영 심사역 매핑 패널**: `program_managers`를 기반으로 책임자와 운영 담당자를 추가·변경하고 심사역 상세 화면과 상호 이동할 수 있도록 구성.
 *   **참여 스타트업 매핑 리스트 테이블**: `program_startups` 조인을 통해 소속된 스타트업 목록을 테이블로 표출하고, 스타트업 추가 검색 모달 및 상태값(심사중, 선정 등) 제어 블록 제공.
 
+> **카드 섹션 표시/숨김(공통 규약)**: 위 보조 카드 섹션(마일스톤 캘린더·심사역 매핑·참여 스타트업 등)은 등록·기본 수정 폼의 토글로 표시/숨김할 수 있어야 합니다. 상세 구현 시 [17_conventions.md](17_conventions.md) 7장 · [PATTERNS.md](PATTERNS.md) 15장을 따라 `lib/programSections.ts` + `sections` jsonb 컬럼 + 폼 토글 + 상세 조건 렌더를 포함합니다(프로필/개요 카드는 항상 표시). 또한 전 도메인 공통 **첨부파일 카드**(`EntityFilesBlock`, [PATTERNS.md](PATTERNS.md) 16장)를 상세에 포함하고 `attachments` 섹션 키로 토글합니다.
+
 ---
 
 ## 7.4 권한 제어 요건 (RBAC)

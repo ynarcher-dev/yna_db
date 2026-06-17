@@ -27,9 +27,9 @@ export const numberColumn = <T,>(page: number, pageSize: number, total: number):
   render: (_v, _r, index) => total - ((page - 1) * pageSize + index),
 });
 
-/** 작성자 (created_by FK 임베드 이름). 값이 없으면 임시로 '관리자' 표시. */
+/** 책임자 (created_by FK 임베드 이름 = 게시글 등록자). 값이 없으면 임시로 '관리자' 표시. */
 export const authorColumn = <T extends ListRecord>(): Column<T> => ({
-  title: '작성자',
+  title: '책임자',
   key: 'created_by',
   width: 100,
   align: 'center',
@@ -59,17 +59,23 @@ export const updatedAtColumn = <T extends ListRecord>(sortOrder: SortOrder): Col
   render: (_v, r) => formatDate(r.updatedAt),
 });
 
-/** 관리 — 삭제(Admin 전용). 행 클릭(상세 이동)과 분리하기 위해 stopPropagation. */
+/**
+ * 관리 — 삭제 버튼. 기본은 Admin 전용(isAdmin)이지만, 도메인별로 행마다 삭제 가능 여부가
+ * 다르면(예: 프로젝트 = 책임자+관리자) `canDelete` 술어를 주어 행 단위로 노출을 제어한다.
+ * 행 클릭(상세 이동)과 분리하기 위해 stopPropagation.
+ */
 export const actionsColumn = <T,>(opts: {
   isAdmin: boolean;
   onDelete: (record: T) => void;
+  /** 행별 삭제 가능 여부. 주어지면 isAdmin 대신 이 술어로 노출을 판단한다. */
+  canDelete?: (record: T) => boolean;
 }): Column<T> => ({
   title: '관리',
   key: 'actions',
   width: 76,
   align: 'center',
   render: (_v, r) =>
-    opts.isAdmin ? (
+    (opts.canDelete ? opts.canDelete(r) : opts.isAdmin) ? (
       <Button
         size="small"
         danger

@@ -30,6 +30,7 @@ function toInput(m: Manager): ManagerInput {
     profileImageUrl: m.profileImageUrl,
     greeting: m.greeting,
     biography: m.biography ?? EMPTY_BIOGRAPHY,
+    sections: m.sections,
   };
 }
 

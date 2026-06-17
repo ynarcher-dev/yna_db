@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { INVESTOR_TYPE_VALUES } from '@/lib/labels';
 
 const won = z.number({ invalid_type_error: '숫자로 입력해 주세요.' });
 const wonNonNeg = won.min(0, '0 이상이어야 합니다.');
@@ -23,9 +24,13 @@ export const startupMetricSchema = z.object({
     .int('정수로 입력해 주세요.')
     .min(0, '0 이상이어야 합니다.'),
   // [투자현황]
-  valuation: wonNonNeg,
+  valuation: wonNonNeg, // 기업 가치(Pre)
   fundingAmount: wonNonNeg,
   fundingRound: z.string().max(30, '30자 이내로 입력해 주세요.'),
+  investor: z.string().max(100, '100자 이내로 입력해 주세요.'),
+  investorType: z.enum(INVESTOR_TYPE_VALUES).or(z.literal('')),
+  /** 자사 투자 재원 펀드 id (internal 일 때만 사용). 없으면 빈 문자열 */
+  fundId: z.string().uuid().or(z.literal('')),
   remarks: z.string().max(500, '비고는 500자 이내로 입력해 주세요.'),
 });
 

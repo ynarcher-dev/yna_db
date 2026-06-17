@@ -5,9 +5,9 @@ import type { Color } from 'antd/es/color-picker';
 import { HiOutlineOfficeBuilding } from 'react-icons/hi';
 import { startupSchema, type StartupInput } from '@/schemas/startup';
 import { INVESTMENT_STAGE_OPTIONS, MANAGEMENT_STATUS_OPTIONS } from '@/lib/labels';
-import { useManagerOptions } from '@/hooks/useManagers';
+import { STARTUP_SECTIONS, DEFAULT_STARTUP_SECTIONS } from '@/lib/startupSections';
+import { SectionVisibilityField } from '@/components/common/SectionVisibilityField';
 import { ProfileImageUploader } from '@/components/common/ProfileImageUploader';
-import { ShareholderEditor } from './ShareholderEditor';
 
 /**
  * 스타트업 등록/수정 폼 (6_startups.md 6.3, 17_conventions.md 3장).
@@ -20,11 +20,10 @@ const EMPTY: StartupInput = {
   investmentStage: 'Seed',
   managementStatus: 'sourced',
   managementStatusEtc: '',
-  managerId: '',
   brandColor: '#515151',
   logoUrl: '',
   description: '',
-  shareholders: [],
+  sections: DEFAULT_STARTUP_SECTIONS,
 };
 
 interface StartupFormProps {
@@ -49,7 +48,6 @@ export function StartupForm({
   onSubmit,
   onCancel,
 }: StartupFormProps) {
-  const { data: managerOptions = [] } = useManagerOptions();
   const {
     control,
     handleSubmit,
@@ -119,26 +117,7 @@ export function StartupForm({
         ) : null}
       </div>
 
-      <div>
-        <label className="mb-1 block text-sm text-yna-main">담당 심사역</label>
-        <Controller
-          name="managerId"
-          control={control}
-          render={({ field }) => (
-            <Select
-              allowClear
-              showSearch
-              optionFilterProp="label"
-              className="w-full"
-              placeholder="담당 심사역 선택"
-              options={managerOptions}
-              value={field.value || undefined}
-              onChange={(value?: string) => field.onChange(value ?? '')}
-            />
-          )}
-        />
-        <FieldError message={errors.managerId?.message} />
-      </div>
+      <p className="text-xs text-yna-sub">담당 심사역은 등록 후 상세 화면의 ‘담당자’ 카드에서 배정합니다.</p>
 
       <div>
         <label className="mb-1 block text-sm text-yna-main">로고 이미지</label>
@@ -193,7 +172,17 @@ export function StartupForm({
         <FieldError message={errors.description?.message} />
       </div>
 
-      <ShareholderEditor control={control} />
+      <Controller
+        name="sections"
+        control={control}
+        render={({ field }) => (
+          <SectionVisibilityField
+            config={STARTUP_SECTIONS}
+            value={field.value}
+            onChange={field.onChange}
+          />
+        )}
+      />
 
       <div className="flex justify-end gap-2 pt-2">
         <Button onClick={onCancel}>취소</Button>

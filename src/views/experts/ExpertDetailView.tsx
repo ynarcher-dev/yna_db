@@ -14,6 +14,7 @@ import { ExpertTypeTag } from '@/components/experts/ExpertTypeTag';
 import { AvailabilityTag } from '@/components/experts/AvailabilityTag';
 import { SpecialtyTags } from '@/components/experts/SpecialtyTags';
 import { ExpertFormDrawer } from '@/components/experts/ExpertFormDrawer';
+import { EntityFilesBlock } from '@/components/common/EntityFilesBlock';
 import { formatDate } from '@/lib/formatters';
 
 /**
@@ -96,33 +97,40 @@ export function ExpertDetailView() {
           <Descriptions.Item label="관심 분야" span={2}>
             <SpecialtyTags specialties={expert.specialties} />
           </Descriptions.Item>
-          <Descriptions.Item label="작성자">{expert.authorName || '관리자'}</Descriptions.Item>
+          <Descriptions.Item label="책임자">{expert.authorName || '관리자'}</Descriptions.Item>
           <Descriptions.Item label="등록일">{formatDate(expert.createdAt)}</Descriptions.Item>
           <Descriptions.Item label="수정일">{formatDate(expert.updatedAt)}</Descriptions.Item>
         </Descriptions>
       </PersonProfileCard>
 
-      {/* 멘토링 만족도 통계 */}
-      <div className="rounded-lg border border-yna-border bg-white p-6">
-        <h2 className="mb-4 text-lg font-semibold text-yna-main">멘토링 만족도</h2>
-        {rating && rating.mentoringCount > 0 && rating.averageRating !== null ? (
-          <div className="flex flex-wrap items-center gap-8">
-            <div className="flex items-center gap-3">
-              <Rate disabled allowHalf value={rating.averageRating} />
-              <span className="text-xl font-semibold text-yna-main">
-                {rating.averageRating.toFixed(1)}
-              </span>
+      {/* 멘토링 만족도 통계 (기본 수정에서 비활성화하면 숨김) */}
+      {expert.sections.mentoringRating ? (
+        <div className="rounded-lg border border-yna-border bg-white p-6">
+          <h2 className="mb-4 text-lg font-semibold text-yna-main">멘토링 만족도</h2>
+          {rating && rating.mentoringCount > 0 && rating.averageRating !== null ? (
+            <div className="flex flex-wrap items-center gap-8">
+              <div className="flex items-center gap-3">
+                <Rate disabled allowHalf value={rating.averageRating} />
+                <span className="text-xl font-semibold text-yna-main">
+                  {rating.averageRating.toFixed(1)}
+                </span>
+              </div>
+              <Statistic title="멘토링 이력" value={rating.mentoringCount} suffix="건" />
             </div>
-            <Statistic title="멘토링 이력" value={rating.mentoringCount} suffix="건" />
-          </div>
-        ) : (
-          <EmptyState message="평가된 멘토링 이력이 없습니다." />
-        )}
-      </div>
+          ) : (
+            <EmptyState message="평가된 멘토링 이력이 없습니다." />
+          )}
+        </div>
+      ) : null}
 
       {/* 약력 (세로 표시) + 소개 — 심사역과 공유하는 블록 */}
-      <BiographyView biography={expert.biography} />
-      <ProfileTextBlock title="소개" text={expert.greeting} />
+      {expert.sections.biography ? <BiographyView biography={expert.biography} /> : null}
+      {expert.sections.intro ? <ProfileTextBlock title="소개" text={expert.greeting} /> : null}
+
+      {/* 첨부파일 (전 도메인 공통 카드) */}
+      {expert.sections.attachments ? (
+        <EntityFilesBlock entityType="expert" entityId={expert.id} />
+      ) : null}
 
       {/* 연계 블록 (Phase 4) */}
       <Alert

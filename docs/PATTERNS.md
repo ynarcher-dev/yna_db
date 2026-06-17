@@ -85,8 +85,9 @@
 2. 데이터 훅(`use{Domain}sList` / `use{Domain}` / `use{Domain}Mutations`).
 3. 폼 + FormDrawer + 도메인 표시 컴포넌트.
 4. 목록 뷰 + 상세 뷰, [AppRoutes.tsx](../src/routes/AppRoutes.tsx)에 `/{domain}`, `/{domain}/:id` 등록(플레이스홀더 제거).
-5. `000N_{domain}_write.sql` 작성 후 Supabase 실행 (SELECT는 [0004_rls_select.sql](../supabase/migrations/0004_rls_select.sql)에서 이미 열림).
-6. 품질 게이트: `npm run lint && npm run typecheck && npm run test && npm run build`.
+5. **상세에 토글 가능한 보조 카드 섹션이 1개 이상이면 카드 섹션 표시/숨김(15장)을 포함**(`lib/{domain}Sections.ts` + `sections` 컬럼 + 폼 토글 + 상세 조건 렌더).
+6. `000N_{domain}_write.sql` 작성 후 Supabase 실행 (SELECT는 [0004_rls_select.sql](../supabase/migrations/0004_rls_select.sql)에서 이미 열림).
+7. 품질 게이트: `npm run lint && npm run typecheck && npm run test && npm run build`.
 
 ---
 
@@ -157,3 +158,43 @@
 ## 14. 용어 표기 (화면 라벨)
 
 * `specialties` → **관심 분야**, `greeting` → **소개**. **DB 컬럼명은 영문 그대로 두고 화면 표기만** 통일한다(라벨 변경이 스키마 변경을 의미하지 않음).
+
+---
+
+## 15. 상세 카드 섹션 표시/숨김 — 구현 표준 (Section Visibility)
+
+상세 화면의 보조 카드 섹션을 등록·기본 수정 폼에서 켜고 끄는 전 도메인 공통 기능([17_conventions.md](17_conventions.md) 7장). **도메인별 복붙 대신 공통 인프라를 재사용**한다.
+
+* **공통 인프라(새로 만들지 않음, 재사용)**
+  * [lib/sectionVisibility.ts](../src/lib/sectionVisibility.ts) — `defineSections(keys, labels)` 팩토리. 도메인 설정 1개(`SectionConfig`)가 `keys`·`labels`·`defaults`·`normalize`·`schema`(zod)를 한 번에 제공.
+  * [components/common/SectionVisibilityField.tsx](../src/components/common/SectionVisibilityField.tsx) — 토글 UI(표현 전용). 폼의 단일 `Controller name="sections"` 안에서 `value`/`onChange` 로 합성.
+* **도메인별 추가물(레퍼런스: 스타트업 [lib/startupSections.ts](../src/lib/startupSections.ts))**
+  1. `lib/{domain}Sections.ts` — `defineSections([...키] as const, {라벨})` 로 `{DOMAIN}_SECTIONS` 정의 + `DEFAULT_*`·`normalize*` 재노출. **키 순서 = 상세 렌더 순서.**
+  2. 타입(`types/{domain}.ts`): 모델에 `sections: {Domain}Sections`, row 에 `sections: Partial<Record<string, boolean>> | null`, `map*Row` 에서 `normalize*(row.sections)`.
+  3. 스키마(`schemas/{domain}.ts`): 입력 스키마에 `sections: {DOMAIN}_SECTIONS.schema`.
+  4. 훅 `toRow`(심사역은 `toAdminRow`): `sections: input.sections` 저장.
+  5. 폼: `EMPTY` 기본값에 `DEFAULT_{DOMAIN}_SECTIONS`, 본문에 `<Controller name="sections">` + `SectionVisibilityField`. `FormDrawer` `toInput` 에 `sections: x.sections`.
+  6. 상세 뷰: 각 보조 섹션을 `{record}.sections.{key} ? <Block/> : null` 로 조건 렌더.
+  7. 마이그레이션 `000N_{domain}_sections.sql`: `ADD COLUMN IF NOT EXISTS sections JSONB NOT NULL DEFAULT '{...전체 true}'::jsonb`. **기존 도메인 UPDATE RLS 재사용**(별도 정책 불필요).
+* **제외 대상**: 프로필/식별 카드(항상 표시), 'Phase 4 연동 예정' Alert.
+* **권한 특례(심사역)**: 표시 설정은 Admin 전용. 본인 수정 RPC(`update_my_profile`)는 `sections` 미전송, 폼은 `mode==='admin'` 에서만 토글 렌더(9·11장 self/admin 분기와 동일).
+* **적용 마이그레이션**: 스타트업 `0027`, 협력사 `0028`, 전문가 `0029`, 심사역 `0030`, 소속 `0032`(모두 사용자 RUN 필요).
+* **새 섹션 키 추가**는 마이그레이션 불필요(jsonb·normalize 가 누락 키를 '표시'로 보정). 예: 첨부파일(`attachments`) 키는 각 `{domain}Sections.ts` 에 추가만 했고 `sections` 컬럼 default 는 그대로 둠.
+
+---
+
+## 16. 첨부파일 카드 — 구현 표준 (Entity Attachments)
+
+모든 게시글 상세에 동일하게 들어가는 **임의 파일 업로드 + 개별/전체(zip) 다운로드** 카드([17_conventions.md](17_conventions.md) 4장). **새 테이블·도메인별 코드 없이** 공통 컴포넌트 하나를 재사용한다.
+
+* **저장 구조(폴리모픽, 새 테이블 없음)**: 기존 `uploaded_files` 를 확장(`0031`).
+  * `entity_type`(startup/partner/expert/manager/department/…) + `entity_id` 로 어느 레코드의 첨부인지 표시.
+  * `purpose='attachment'`(기존 CHECK 에 추가). Storage 는 비공개 `reports` 버킷 재사용(경로 `attachment/{type}/{id}/{uuid}-{name}`).
+  * 삭제 정책: `purpose='attachment'` 한정으로 직원(admin/manager) DELETE 허용(기존 uploaded_files 엔 DELETE 정책 없었음).
+* **공통 코드(재사용, 도메인별 추가 없음)**
+  * [components/common/EntityFilesBlock.tsx](../src/components/common/EntityFilesBlock.tsx) — 카드 전체(업로더+목록+개별/전체 다운로드). `<EntityFilesBlock entityType="startup" entityId={id} />` 한 줄로 사용.
+  * [hooks/useEntityFiles.ts](../src/hooks/useEntityFiles.ts) — 목록 조회 + 삭제.
+  * [lib/fileDownload.ts](../src/lib/fileDownload.ts) — `uploadEntityFile`(업로드+메타), `downloadFileWithLog`(개별), `downloadFilesAsZip`(일괄). 다운로드는 `DownloadPurposeModal`(목적) → 서명 URL → `log_file_download` RPC.
+* **용량 제한 없음**(추후 S3). **로그는 DB 만**(화면 비노출, 4장).
+* **상세 배치**: 각 도메인 상세 마지막 콘텐츠 카드로 렌더하고, 섹션 토글(`sections.attachments`, 15장)로 표시/숨김. 새 도메인은 상세 구현 시 이 카드를 포함한다.
+* **적용 마이그레이션**: `0031`(uploaded_files 확장·attachment purpose·삭제정책), 소속은 `0032`(sections 컬럼 신설) 동반.

@@ -13,6 +13,22 @@ const TABLE = 'partners';
 // created_by FK 로 작성자(심사역) 이름을 임베드 (PostgREST resource embedding)
 const SELECT_WITH_AUTHOR = '*, author:managers!partners_created_by_fkey(name)';
 
+/** id+name 옵션 목록 (Select 용, 예: 프로젝트 협력사 매핑). 미삭제 협력사 전체. */
+export function usePartnerOptions() {
+  return useQuery({
+    queryKey: [TABLE, 'options'],
+    queryFn: async (): Promise<{ value: string; label: string }[]> => {
+      const { data, error } = await supabase
+        .from(TABLE)
+        .select('id, name')
+        .is('deleted_at', null)
+        .order('name', { ascending: true });
+      if (error) throw error;
+      return (data ?? []).map((p) => ({ value: p.id as string, label: p.name as string }));
+    },
+  });
+}
+
 interface PartnersListArgs {
   search: string;
   partnerType?: string;
@@ -69,6 +85,7 @@ function toRow(input: PartnerInput) {
     phone: input.phone ? input.phone.trim() : null,
     email: input.email ? input.email.trim().toLowerCase() : null,
     interaction_log: input.interactionLog,
+    sections: input.sections,
   };
 }
 

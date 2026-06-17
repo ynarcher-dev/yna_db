@@ -2,8 +2,10 @@ import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Input, Select, Button } from 'antd';
 import { managerSchema, type ManagerInput } from '@/schemas/manager';
+import { MANAGER_SECTIONS } from '@/lib/managerSections';
 import { BiographyEditor } from '@/components/common/BiographyEditor';
 import { ProfileImageUploader } from '@/components/common/ProfileImageUploader';
+import { SectionVisibilityField } from '@/components/common/SectionVisibilityField';
 
 /**
  * 심사역 프로필 수정 폼 (5_managers.md 5.3, 17_conventions.md 3장).
@@ -155,6 +157,21 @@ export function ManagerForm({
         <label className="mb-2 block text-sm font-medium text-yna-main">약력</label>
         <BiographyEditor control={control} />
       </div>
+
+      {/* 표시 섹션 토글은 Admin 전용 (본인 수정 RPC 는 sections 미전송) */}
+      {isAdmin ? (
+        <Controller
+          name="sections"
+          control={control}
+          render={({ field }) => (
+            <SectionVisibilityField
+              config={MANAGER_SECTIONS}
+              value={field.value}
+              onChange={field.onChange}
+            />
+          )}
+        />
+      ) : null}
 
       <div className="flex justify-end gap-2 pt-2">
         <Button onClick={onCancel}>취소</Button>

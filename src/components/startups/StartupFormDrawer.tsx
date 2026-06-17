@@ -27,11 +27,10 @@ function toInput(s: Startup): StartupInput {
     investmentStage: s.investmentStage as InvestmentStage,
     managementStatus: s.managementStatus,
     managementStatusEtc: s.managementStatusEtc,
-    managerId: s.managerId,
     brandColor: s.brandColor,
     logoUrl: s.logoUrl,
     description: s.description,
-    shareholders: s.shareholders,
+    sections: s.sections,
   };
 }
 

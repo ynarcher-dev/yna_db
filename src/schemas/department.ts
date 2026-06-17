@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { DEPARTMENT_SECTIONS } from '@/lib/departmentSections';
 
 /**
  * 소속(부서) 등록/수정 검증 스키마 (11_departments.md 11.2, 17_conventions.md 3장).
@@ -9,6 +10,7 @@ export const departmentSchema = z.object({
   /** 설립일은 선택값(YYYY-MM-DD 또는 빈 문자열) */
   establishedAt: z.string().max(10),
   description: z.string().max(1000, '설명은 1000자 이내로 입력해 주세요.'),
+  sections: DEPARTMENT_SECTIONS.schema,
 });
 
 export type DepartmentInput = z.infer<typeof departmentSchema>;

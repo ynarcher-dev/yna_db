@@ -3,6 +3,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Input, Select, Button } from 'antd';
 import { partnerSchema, type PartnerInput } from '@/schemas/partner';
 import { PARTNER_TYPE_OPTIONS } from '@/lib/labels';
+import { PARTNER_SECTIONS, DEFAULT_PARTNER_SECTIONS } from '@/lib/partnerSections';
+import { SectionVisibilityField } from '@/components/common/SectionVisibilityField';
 import { InteractionLogEditor } from './InteractionLogEditor';
 
 /**
@@ -17,6 +19,7 @@ const EMPTY: PartnerInput = {
   phone: '',
   email: '',
   interactionLog: [],
+  sections: DEFAULT_PARTNER_SECTIONS,
 };
 
 interface PartnerFormProps {
@@ -114,6 +117,18 @@ export function PartnerForm({
       </div>
 
       <InteractionLogEditor control={control} />
+
+      <Controller
+        name="sections"
+        control={control}
+        render={({ field }) => (
+          <SectionVisibilityField
+            config={PARTNER_SECTIONS}
+            value={field.value}
+            onChange={field.onChange}
+          />
+        )}
+      />
 
       <div className="flex justify-end gap-2 pt-2">
         <Button onClick={onCancel}>취소</Button>

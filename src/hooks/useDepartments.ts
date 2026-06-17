@@ -82,6 +82,7 @@ function toRow(input: DepartmentInput) {
     name: input.name.trim(),
     established_at: input.establishedAt ? input.establishedAt : null,
     description: input.description ? input.description.trim() : null,
+    sections: input.sections,
   };
 }
 

@@ -23,6 +23,7 @@ function toInput(d: Department): DepartmentInput {
     name: d.name,
     establishedAt: d.establishedAt,
     description: d.description,
+    sections: d.sections,
   };
 }
 

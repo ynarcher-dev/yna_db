@@ -49,19 +49,43 @@ export function MetricBarChart({
 
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
-        <XAxis dataKey="year" fontSize={12} />
-        <YAxis yAxisId="left" tickFormatter={tick} fontSize={12} width={unit === 'won' ? 56 : 40} />
+      <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 8 }} barCategoryGap="28%">
+        {/* 가로 그리드만 연하게 — 비데이터 잉크 최소화 */}
+        <CartesianGrid vertical={false} stroke="#f0f0f0" />
+        <XAxis dataKey="year" fontSize={12} tickLine={false} axisLine={{ stroke: '#e5e5e5' }} />
+        <YAxis
+          yAxisId="left"
+          tickFormatter={tick}
+          fontSize={12}
+          width={unit === 'won' ? 56 : 40}
+          tickLine={false}
+          axisLine={false}
+        />
         {hasRight ? (
-          <YAxis yAxisId="right" orientation="right" tickFormatter={tick} fontSize={12} width={56} />
+          <YAxis
+            yAxisId="right"
+            orientation="right"
+            tickFormatter={tick}
+            fontSize={12}
+            width={56}
+            tickLine={false}
+            axisLine={false}
+          />
         ) : null}
         <Tooltip formatter={tipFmt} />
-        <Legend />
+        <Legend wrapperStyle={{ fontSize: 12 }} />
         {/* 0 기준선: 음수(적자·자본잠식)를 시각적으로 구분 */}
-        <ReferenceLine yAxisId="left" y={0} stroke="#bbb" />
+        <ReferenceLine yAxisId="left" y={0} stroke="#ccc" />
         {series.map((s) => (
-          <Bar key={s.key} yAxisId={s.yAxisId ?? 'left'} dataKey={s.key} name={s.name} fill={s.color} />
+          <Bar
+            key={s.key}
+            yAxisId={s.yAxisId ?? 'left'}
+            dataKey={s.key}
+            name={s.name}
+            fill={s.color}
+            maxBarSize={26}
+            radius={[2, 2, 0, 0]}
+          />
         ))}
       </BarChart>
     </ResponsiveContainer>

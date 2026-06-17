@@ -3,6 +3,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Input, DatePicker, Button } from 'antd';
 import dayjs from 'dayjs';
 import { departmentSchema, type DepartmentInput } from '@/schemas/department';
+import { DEPARTMENT_SECTIONS, DEFAULT_DEPARTMENT_SECTIONS } from '@/lib/departmentSections';
+import { SectionVisibilityField } from '@/components/common/SectionVisibilityField';
 
 /**
  * 소속(부서) 등록/수정 폼 (11_departments.md 11.3, 17_conventions.md 3장).
@@ -12,6 +14,7 @@ const EMPTY: DepartmentInput = {
   name: '',
   establishedAt: '',
   description: '',
+  sections: DEFAULT_DEPARTMENT_SECTIONS,
 };
 
 interface DepartmentFormProps {
@@ -84,6 +87,18 @@ export function DepartmentForm({
         />
         <FieldError message={errors.description?.message} />
       </div>
+
+      <Controller
+        name="sections"
+        control={control}
+        render={({ field }) => (
+          <SectionVisibilityField
+            config={DEPARTMENT_SECTIONS}
+            value={field.value}
+            onChange={field.onChange}
+          />
+        )}
+      />
 
       <div className="flex justify-end gap-2 pt-2">
         <Button onClick={onCancel}>취소</Button>

@@ -1,6 +1,6 @@
 # 💾 15. 시스템·운영 테이블 스키마 (15_system_schema.md)
 
-본 문서는 [0_db_schema.md](0_db_schema.md)의 업무 마스터 테이블을 보완하는 **시스템/운영 테이블**(알림, 감사 로그, AI 대화 세션, 업로드 파일 메타데이터, 문서 임베딩)의 DDL 및 RLS를 정의합니다. 이 테이블들은 [2_policies.md](2_policies.md) 2.3의 "제한 데이터"(소유자 또는 Admin만 접근)와 [3_smart_features.md](3_smart_features.md)의 AI 기능을 구현하기 위해 필요합니다.
+본 문서는 [0_db_schema.md](0_db_schema.md)의 업무 마스터 테이블을 보완하는 **시스템/운영 테이블**(알림, 감사 로그, AI 대화 세션, 업로드 파일 메타데이터, 파일 다운로드 로그, 문서 임베딩)의 DDL 및 RLS를 정의합니다. 이 테이블들은 [2_policies.md](2_policies.md) 2.3의 "제한 데이터"(소유자 또는 Admin만 접근)와 [3_smart_features.md](3_smart_features.md)의 AI 기능을 구현하기 위해 필요합니다.
 
 ---
 
@@ -118,7 +118,43 @@ CREATE INDEX idx_uploaded_files_expiry ON public.uploaded_files (expires_at) WHE
 
 ---
 
-## 5. 문서 임베딩 테이블 (document_embeddings)
+## 5. 파일 다운로드 로그 테이블 (file_download_logs)
+
+업로드한 파일을 다운로드할 수 있는 모든 카드 섹션의 공통 감사 로그입니다. 후속관리 보고서, 협력사 문서, 펀드/프로젝트 첨부 등 사용자가 파일을 내려받는 UI는 이 테이블을 통해 **누가, 언제, 어떤 목적으로** 다운로드했는지 카드 안에 표시해야 합니다([17_conventions.md](17_conventions.md) 4장).
+
+```sql
+CREATE TABLE public.file_download_logs (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    file_id UUID REFERENCES public.uploaded_files(id) ON DELETE CASCADE NOT NULL,
+    actor_id UUID REFERENCES public.managers(id) ON DELETE SET NULL,
+    source_type VARCHAR(40) NOT NULL, -- startup_followup, partner_doc, fund_doc, project_doc 등
+    source_id UUID, -- 원천 업무 레코드 id
+    section_key VARCHAR(80) NOT NULL, -- 화면 카드 섹션 식별자(예: startup_followups)
+    download_purpose TEXT NOT NULL,
+    batch_id UUID, -- zip/일괄 다운로드 시 같은 묶음 식별
+    ip_address INET,
+    user_agent TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    CHECK (length(trim(download_purpose)) > 0)
+);
+
+CREATE INDEX idx_file_download_logs_file
+ON public.file_download_logs (file_id, created_at DESC);
+
+CREATE INDEX idx_file_download_logs_source
+ON public.file_download_logs (source_type, source_id, created_at DESC);
+
+CREATE INDEX idx_file_download_logs_actor
+ON public.file_download_logs (actor_id, created_at DESC);
+```
+
+* **기록 주체**: 클라이언트가 직접 INSERT하지 않습니다. 다운로드용 Edge Function이 권한을 검증하고 Presigned GET URL을 발급하는 같은 트랜잭션 흐름에서 로그를 INSERT합니다.
+* **노출 정책(현행)**: 다운로드 이력은 **DB 적재 전용**이며 카드 화면에는 표시하지 않습니다([17_conventions.md](17_conventions.md) 4장). 조회는 Supabase/관리자 도구에서 `source_type`·`source_id`·`section_key` 기준으로 수행하며, RLS 상 Admin은 전체, Manager는 본인이 읽을 수 있는 업무 파일의 이력만 조회됩니다(향후 관리자 화면 확장 대비 SELECT 정책은 유지).
+* **목적 보존**: `download_purpose`는 사용자가 선택하거나 입력한 업무 목적 원문을 저장합니다. 일괄 다운로드는 파일별 로그를 각각 남기되 같은 `batch_id`를 부여합니다.
+
+---
+
+## 6. 문서 임베딩 테이블 (document_embeddings)
 
 [3_smart_features.md](3_smart_features.md)의 RAG 벡터 스토어입니다. `text-embedding-3-small`(1536차원)을 기준으로 합니다.
 
@@ -147,7 +183,7 @@ USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
 
 ---
 
-## 6. Row Level Security (RLS) 정책
+## 7. Row Level Security (RLS) 정책
 
 ```sql
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
@@ -155,10 +191,11 @@ ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ai_chat_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ai_chat_messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.uploaded_files ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.file_download_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.document_embeddings ENABLE ROW LEVEL SECURITY;
 ```
 
-### 6.1 알림: 수신자 본인만 조회·읽음 처리
+### 7.1 알림: 수신자 본인만 조회·읽음 처리
 ```sql
 CREATE POLICY notifications_select_own
 ON public.notifications FOR SELECT TO authenticated
@@ -171,7 +208,7 @@ WITH CHECK (recipient_id = auth.uid());
 -- INSERT는 서버측(service_role) 또는 Trigger만. 클라이언트 INSERT/DELETE 정책 없음.
 ```
 
-### 6.2 감사 로그: Admin만 조회, 클라이언트 변경 불가
+### 7.2 감사 로그: Admin만 조회, 클라이언트 변경 불가
 ```sql
 CREATE POLICY audit_logs_select_admin
 ON public.audit_logs FOR SELECT TO authenticated
@@ -179,7 +216,7 @@ USING (public.current_user_role() = 'admin');
 -- INSERT/UPDATE/DELETE 클라이언트 정책 없음 (append-only, 서버측 전용).
 ```
 
-### 6.3 AI 세션·메시지·업로드·임베딩: 소유자 또는 Admin
+### 7.3 AI 세션·메시지·업로드·임베딩: 소유자 또는 Admin
 ```sql
 -- 세션
 CREATE POLICY ai_sessions_rw_own
@@ -218,6 +255,19 @@ USING (owner_id = auth.uid() OR public.current_user_role() = 'admin');
 CREATE POLICY uploaded_files_insert_own
 ON public.uploaded_files FOR INSERT TO authenticated
 WITH CHECK (owner_id = auth.uid());
+
+-- 다운로드 로그: 조회 가능 업무 파일 기준으로 표시, 기록은 서버측 전용.
+CREATE POLICY file_download_logs_select_visible
+ON public.file_download_logs FOR SELECT TO authenticated
+USING (
+    public.current_user_role() = 'admin'
+    OR EXISTS (
+        SELECT 1 FROM public.uploaded_files f
+        WHERE f.id = file_id
+          AND (f.owner_id = auth.uid() OR public.current_user_role() = 'manager')
+    )
+);
+-- INSERT/UPDATE/DELETE 클라이언트 정책 없음. Edge Function(service_role)만 INSERT.
 
 -- 임베딩: 직접 SELECT 금지, RPC만 사용. 소유자 INSERT만 허용.
 CREATE POLICY embeddings_insert_own

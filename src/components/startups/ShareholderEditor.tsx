@@ -1,14 +1,18 @@
-import { Controller, useFieldArray, type Control } from 'react-hook-form';
+import { Controller, useFieldArray, useWatch, type Control } from 'react-hook-form';
 import { Button, Input, InputNumber } from 'antd';
 import { HiOutlinePlus, HiOutlineTrash } from 'react-icons/hi';
-import type { StartupInput } from '@/schemas/startup';
+import type { ShareholdersFormInput } from '@/schemas/startup';
 
 /**
  * 주주 구성 에디터 (6_startups.md 6.3 — 주주 정보 추가/제외 블록).
- * react-hook-form useFieldArray 로 행 추가/삭제를 관리한다. 지분율 합계를 보조 표시한다.
+ * react-hook-form useFieldArray 로 행 추가/삭제를 관리한다. 주주 카드 전용 드로어에서 사용.
+ * 지분율 합계를 실시간 표시하고, 100% 초과 시 경고한다(저장은 스키마에서 차단).
  */
-export function ShareholderEditor({ control }: { control: Control<StartupInput> }) {
+export function ShareholderEditor({ control }: { control: Control<ShareholdersFormInput> }) {
   const { fields, append, remove } = useFieldArray({ control, name: 'shareholders' });
+  const rows = useWatch({ control, name: 'shareholders' }) ?? [];
+  const totalPct = rows.reduce((sum, r) => sum + (Number(r?.percentage) || 0), 0);
+  const over = totalPct > 100;
 
   return (
     <div className="space-y-2">
@@ -74,6 +78,12 @@ export function ShareholderEditor({ control }: { control: Control<StartupInput> 
           />
         </div>
       ))}
+
+      {fields.length > 0 ? (
+        <p className={`pt-1 text-right text-xs ${over ? 'text-yna-point' : 'text-yna-sub'}`}>
+          지분율 합계 {totalPct}%{over ? ' — 100%를 초과할 수 없습니다' : ''}
+        </p>
+      ) : null}
     </div>
   );
 }

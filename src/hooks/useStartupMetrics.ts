@@ -23,11 +23,12 @@ export function useStartupMetrics(startupId: string | undefined) {
     queryFn: async (): Promise<StartupMetric[]> => {
       const { data, error } = await supabase
         .from(TABLE)
-        .select('*')
+        .select('*, fund:funds(name)')
         .eq('startup_id', startupId as string)
         .order('record_date', { ascending: true });
       if (error) throw error;
-      return (data as StartupMetricRow[]).map(mapStartupMetricRow);
+      // PostgREST 임베드는 단일 FK 도 배열 타입으로 추론하므로 unknown 경유로 단언한다.
+      return (data as unknown as StartupMetricRow[]).map(mapStartupMetricRow);
     },
   });
 }

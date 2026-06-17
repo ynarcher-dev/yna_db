@@ -1,15 +1,17 @@
 import { z } from 'zod';
 import { REPORT_TYPE_VALUES } from '@/lib/labels';
 
-/** 마일스톤 1건. */
-export const milestoneSchema = z.object({
-  title: z.string().min(1, '마일스톤 내용을 입력해 주세요.').max(100),
-  done: z.boolean(),
+/** 첨부파일 1건. 비공개 버킷 전환(0026) 이후 공개 url 대신 fileId(uploaded_files)를 보관. */
+export const followupFileSchema = z.object({
+  name: z.string(),
+  path: z.string(),
+  fileId: z.string().uuid().optional(),
 });
 
 /**
- * 후속 보고 등록 검증 (6_startups.md startup_followups).
+ * 후속관리 등록/수정 검증 (6_startups.md startup_followups).
  * (startup_id, report_type, reporting_period) UNIQUE → 중복 시 DB 에러를 토스트로 안내.
+ * 제출 완료 여부는 폼이 아닌 카드의 토글로 관리한다.
  */
 export const startupFollowupSchema = z.object({
   title: z.string().min(1, '보고 제목을 입력해 주세요.').max(150),
@@ -17,10 +19,8 @@ export const startupFollowupSchema = z.object({
     errorMap: () => ({ message: '보고 유형을 선택해 주세요.' }),
   }),
   reportingPeriod: z.string().min(1, '보고 기간을 입력해 주세요.').max(20),
-  dueDate: z.string().min(1, '제출 기한을 선택해 주세요.'),
-  fileUrl: z.string().url('올바른 URL 형식이 아닙니다.').or(z.literal('')),
-  isSubmitted: z.boolean(),
-  milestones: z.array(milestoneSchema).max(20, '마일스톤은 최대 20개까지 등록할 수 있습니다.'),
+  comment: z.string().max(2000, '코멘트는 2000자 이내로 입력해 주세요.'),
+  files: z.array(followupFileSchema),
 });
 
 export type StartupFollowupInput = z.infer<typeof startupFollowupSchema>;

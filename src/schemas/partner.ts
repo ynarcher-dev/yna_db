@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { PARTNER_SECTIONS } from '@/lib/partnerSections';
 
 /**
  * 협력사 등록/수정 검증 스키마 (17_conventions.md 3장, 12_partners.md).
@@ -26,6 +27,7 @@ export const partnerSchema = z.object({
   phone: phoneSchema,
   email: emailSchema,
   interactionLog: z.array(interactionLogEntrySchema),
+  sections: PARTNER_SECTIONS.schema,
 });
 
 export type PartnerInput = z.infer<typeof partnerSchema>;

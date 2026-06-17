@@ -1,3 +1,5 @@
+import { normalizeDepartmentSections, type DepartmentSections } from '@/lib/departmentSections';
+
 /** 소속 본부/부서 (camelCase 화면 모델, 11_departments.md Department) */
 export interface Department {
   id: string;
@@ -6,6 +8,8 @@ export interface Department {
   establishedAt: string;
   /** 본부 역할·업무 설명. 없으면 빈 문자열 */
   description: string;
+  /** 상세 카드 섹션 표시/숨김 맵. 비활성 섹션은 상세 화면에서 숨긴다 */
+  sections: DepartmentSections;
   deletedAt?: string;
   createdAt: string;
   /** 최종반영일 (마지막 수정 시각) */
@@ -23,6 +27,7 @@ export interface DepartmentRow {
   name: string;
   established_at: string | null;
   description: string | null;
+  sections: Partial<Record<string, boolean>> | null;
   deleted_at: string | null;
   created_at: string;
   updated_at: string;
@@ -36,6 +41,7 @@ export function mapDepartmentRow(row: DepartmentRow): Department {
     name: row.name,
     establishedAt: row.established_at ?? '',
     description: row.description ?? '',
+    sections: normalizeDepartmentSections(row.sections),
     deletedAt: row.deleted_at ?? undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,

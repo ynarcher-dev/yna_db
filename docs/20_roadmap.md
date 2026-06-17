@@ -72,12 +72,13 @@
 * **목표**: 시계열·매핑·캘린더·칸반 등 고난도 위젯 완성.
 * **선행**: Phase 3(CRUD 패턴 확정).
 * **참조**: [6_startups.md](6_startups.md), [7_programs.md](7_programs.md), [8_funds.md](8_funds.md), [10_projects.md](10_projects.md), [16_aggregations.md](16_aggregations.md)
-* **순서·핵심 태스크**:
-  1. **스타트업**: 기본 CRUD → `startup_metrics` 시계열 차트(Recharts) → `startup_followups` 마일스톤/제출 트래커 → 주주 파이차트.
-  2. **프로그램**: CRUD → `program_events` FullCalendar 연동(동기화 Trigger 확인) → 운영 심사역/참여 스타트업 매핑.
-  3. **펀드**: CRUD(Admin 전용) → 소진율 바·LP 도넛 → `capital_calls`·`fund_investments` 테이블.
-  4. **프로젝트**: 칸반 보드(@hello-pangea/dnd) → 단계 변경 시 `project_timelines` 트랜잭션 기록 확인 → 스타트업/협력사 매핑 패널 → 타임라인 로거.
-* **DoD**: 시계열 차트가 record_date 순으로 렌더 / 칸반 카드 이동 시 timeline 자동 기록 / program_events 등록이 대시보드 일정에 반영 / 펀드 작성은 Admin만.
+* **순서·핵심 태스크** (발주자 요청으로 **프로젝트를 프로그램보다 앞당기고, 프로그램을 마지막**으로 조정, 2026-06-17):
+  1. ✅ **스타트업**: 기본 CRUD → `startup_metrics` 시계열 차트(Recharts) → `startup_followups` 트래커 → 주주 파이차트. (+담당자 다대다 retrofit, 0038)
+  2. ✅ **프로젝트**: CRUD → 담당자(다대다)·매칭 스타트업/협력사 매핑 패널 → 섹션 토글·첨부파일. **칸반/딜 파이프라인은 폐기**(단순 상태값 대기/진행중/완료/중단/취소), 유형=M&A·신사업·기타. 상세 [10_projects.md](10_projects.md).
+  3. ⬜ **펀드**: CRUD(Admin 전용) → 소진율 바·LP 도넛 → `capital_calls`·`fund_investments` 테이블.
+  4. ⬜ **프로그램**(마지막): CRUD → `program_events` FullCalendar 연동(동기화 Trigger 확인) → 운영 심사역(다대다)/참여 스타트업 매핑.
+* **✅ 선결정 게이트 — 해결됨(2026-06-17)**: 담당 심사역을 **다대다로 확정**(책임자/담당자/관리자 3계층). 스타트업·프로젝트 모두 `*_managers` 조인 적용 완료(`view_department_stats` 등 집계 반영). 게시글 **삭제 권한 = 책임자+관리자**(프로젝트 적용), **수정 권한 축소**는 보류 유지. 상세 [6_startups.md](6_startups.md) 6.5.
+* **DoD**: 시계열 차트가 record_date 순으로 렌더 / 담당자 다대다 배정 동작 / program_events 등록이 대시보드 일정에 반영 / 펀드 작성은 Admin만.
 
 ---
 

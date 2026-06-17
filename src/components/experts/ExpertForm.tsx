@@ -3,7 +3,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Input, Select, Switch, Button } from 'antd';
 import { expertSchema, type ExpertInput } from '@/schemas/expert';
 import { EXPERT_TYPE_OPTIONS } from '@/lib/labels';
+import { EXPERT_SECTIONS, DEFAULT_EXPERT_SECTIONS } from '@/lib/expertSections';
 import { ProfileImageUploader } from '@/components/common/ProfileImageUploader';
+import { SectionVisibilityField } from '@/components/common/SectionVisibilityField';
 import { BiographyEditor } from '@/components/common/BiographyEditor';
 import { EMPTY_BIOGRAPHY } from '@/types/biography';
 
@@ -23,6 +25,7 @@ const EMPTY: ExpertInput = {
   profileImageUrl: '',
   greeting: '',
   biography: EMPTY_BIOGRAPHY,
+  sections: DEFAULT_EXPERT_SECTIONS,
 };
 
 interface ExpertFormProps {
@@ -189,6 +192,18 @@ export function ExpertForm({
         <label className="mb-2 block text-sm font-medium text-yna-main">약력</label>
         <BiographyEditor control={control} />
       </div>
+
+      <Controller
+        name="sections"
+        control={control}
+        render={({ field }) => (
+          <SectionVisibilityField
+            config={EXPERT_SECTIONS}
+            value={field.value}
+            onChange={field.onChange}
+          />
+        )}
+      />
 
       <div className="flex justify-end gap-2 pt-2">
         <Button onClick={onCancel}>취소</Button>

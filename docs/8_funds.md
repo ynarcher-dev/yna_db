@@ -54,6 +54,8 @@ interface Fund {
 *   **Capital Call 납입 히스토리 테이블 (Detail Area 1)**: `capital_calls` 데이터를 호출하여 차수별 요청일, 요청 총액, 납입 완료 여부를 나타내는 데이터 테이블 블록.
 *   **피투자 포트폴리오 지분 분배 테이블 (Detail Area 2)**: `fund_investments` 테이블을 활용하여 해당 펀드에서 자금이 집행된 스타트업 목록, 투자액, 소유 지분율을 연계 표출하는 테이블 블록. (클릭 시 스타트업 상세로 연결)
 
+> **카드 섹션 표시/숨김(공통 규약)**: 위 보조 카드 섹션(LP 도넛·Capital Call·포트폴리오 등)은 등록·기본 수정 폼의 토글로 표시/숨김할 수 있어야 합니다. 상세 구현 시 [17_conventions.md](17_conventions.md) 7장 · [PATTERNS.md](PATTERNS.md) 15장을 따라 `lib/fundSections.ts` + `sections` jsonb 컬럼 + 폼 토글 + 상세 조건 렌더를 포함합니다(재무 정보/식별 카드는 항상 표시). 또한 전 도메인 공통 **첨부파일 카드**(`EntityFilesBlock`, [PATTERNS.md](PATTERNS.md) 16장)를 상세에 포함하고 `attachments` 섹션 키로 토글합니다.
+
 ---
 
 ## 8.4 권한 제어 요건 (RBAC)

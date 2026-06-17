@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Space, Alert, Descriptions, Tag } from 'antd';
+import { Button, Space, Descriptions, Tag } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
 import { HiArrowLeft } from 'react-icons/hi';
 import { useManager, useManagerMutations } from '@/hooks/useManagers';
@@ -13,6 +13,8 @@ import { ProfileTextBlock } from '@/components/common/ProfileTextBlock';
 import { RoleTag } from '@/components/managers/RoleTag';
 import { SpecialtyTags } from '@/components/experts/SpecialtyTags';
 import { ManagerFormDrawer } from '@/components/managers/ManagerFormDrawer';
+import { EntityFilesBlock } from '@/components/common/EntityFilesBlock';
+import { ManagerRelatedBlocks } from '@/components/managers/ManagerRelatedBlocks';
 import { formatDate } from '@/lib/formatters';
 
 /**
@@ -109,17 +111,17 @@ export function ManagerDetailView() {
         </Descriptions>
       </PersonProfileCard>
 
-      {/* 약력 (세로 표시) + 소개 — 전문가와 공유하는 블록 */}
-      <BiographyView biography={manager.biography} />
-      <ProfileTextBlock title="소개" text={manager.greeting} />
+      {/* 약력 (세로 표시) + 소개 — 전문가와 공유하는 블록 (기본 수정에서 비활성화하면 숨김) */}
+      {manager.sections.biography ? <BiographyView biography={manager.biography} /> : null}
+      {manager.sections.intro ? <ProfileTextBlock title="소개" text={manager.greeting} /> : null}
 
-      {/* 연계 블록 (Phase 4) */}
-      <Alert
-        type="info"
-        showIcon
-        message="담당 스타트업 · 참여 프로그램 · 담당 프로젝트"
-        description="심사역이 담당/참여하는 스타트업·프로그램·프로젝트 탭은 해당 도메인(Phase 4) 개발 시 연결됩니다."
-      />
+      {/* 첨부파일 (전 도메인 공통 카드) */}
+      {manager.sections.attachments ? (
+        <EntityFilesBlock entityType="manager" entityId={manager.id} />
+      ) : null}
+
+      {/* 역방향 연계: 담당 스타트업·프로젝트·운영 프로그램 */}
+      <ManagerRelatedBlocks managerId={manager.id} />
 
       {canEdit ? (
         <ManagerFormDrawer

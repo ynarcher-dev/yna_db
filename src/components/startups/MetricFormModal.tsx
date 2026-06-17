@@ -1,14 +1,16 @@
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Modal, InputNumber, Input, DatePicker, Button } from 'antd';
+import { Drawer, InputNumber, Input, DatePicker, Button, Select } from 'antd';
 import type { Control } from 'react-hook-form';
 import dayjs from 'dayjs';
 import { startupMetricSchema, type StartupMetricInput } from '@/schemas/startupMetric';
+import { INVESTMENT_STAGE_OPTIONS, INVESTOR_TYPE_OPTIONS } from '@/lib/labels';
+import { useFundOptions } from '@/hooks/useFunds';
 import { formatDate } from '@/lib/formatters';
 import type { StartupMetric } from '@/types/startupMetric';
 
 /**
- * 성장 지표 카드별 관리 모달 (6_startups.md Detail Tab 1).
+ * 성장 지표 카드별 관리 Drawer (6_startups.md Detail Tab 1).
  * group 에 따라 해당 카드 항목만 렌더한다. 기준 연도를 고르면 그 연도의 기존 값을 불러와
  * 수정할 수 있고(없으면 신규), 저장 시 같은 연도 행에 해당 카드 컬럼만 병합(upsert)된다.
  * 폼은 전체 스키마(기본값 0/'' 유효)를 사용하고, 제출 시 호출부가 그룹 컬럼만 저장한다.
@@ -27,11 +29,14 @@ const EMPTY: StartupMetricInput = {
   valuation: 0,
   fundingAmount: 0,
   fundingRound: '',
+  investor: '',
+  investorType: '',
+  fundId: '',
   remarks: '',
 };
 
 type FieldKey = keyof StartupMetricInput;
-type FieldKind = 'won' | 'count' | 'text';
+type FieldKind = 'won' | 'count' | 'text' | 'roundSelect' | 'investorType';
 
 const FIELD_META: Record<string, { label: string; kind: FieldKind }> = {
   revenue: { label: '매출액 (원)', kind: 'won' },
@@ -41,16 +46,21 @@ const FIELD_META: Record<string, { label: string; kind: FieldKind }> = {
   liabilities: { label: '부채 (원)', kind: 'won' },
   equity: { label: '자본 (원)', kind: 'won' },
   employeeCount: { label: '고용 인원', kind: 'count' },
-  valuation: { label: '기업 가치 (원)', kind: 'won' },
+  valuation: { label: '기업 가치(Pre) (원)', kind: 'won' },
   fundingAmount: { label: '투자유치액 (원)', kind: 'won' },
-  fundingRound: { label: '투자 라운드', kind: 'text' },
+  fundingRound: { label: '투자 라운드', kind: 'roundSelect' },
+  investor: { label: '투자자', kind: 'text' },
+  investorType: { label: '투자자 구분', kind: 'investorType' },
 };
 
 const GROUP_CONFIG: Record<MetricGroup, { title: string; fields: FieldKey[] }> = {
   finance: { title: '재무 현황 관리', fields: ['assets', 'liabilities', 'equity'] },
   revenue: { title: '매출 현황 관리', fields: ['revenue', 'operatingProfit', 'netIncome'] },
   employment: { title: '고용 현황 관리', fields: ['employeeCount'] },
-  investment: { title: '투자 현황 관리', fields: ['valuation', 'fundingAmount', 'fundingRound'] },
+  investment: {
+    title: '투자 현황 관리',
+    fields: ['valuation', 'fundingAmount', 'fundingRound', 'investor', 'investorType'],
+  },
 };
 
 function err(message?: string) {
@@ -64,7 +74,29 @@ function FieldInput({ control, name }: { control: Control<StartupMetricInput>; n
       control={control}
       name={name}
       render={({ field }) => {
-        if (meta.kind === 'text') return <Input {...(field as object)} placeholder="예: Series A" />;
+        if (meta.kind === 'roundSelect')
+          return (
+            <Select
+              allowClear
+              className="w-full"
+              placeholder="라운드 선택"
+              options={INVESTMENT_STAGE_OPTIONS}
+              value={(field.value as string) || undefined}
+              onChange={(v?: string) => field.onChange(v ?? '')}
+            />
+          );
+        if (meta.kind === 'investorType')
+          return (
+            <Select
+              allowClear
+              className="w-full"
+              placeholder="자사 / 외부"
+              options={INVESTOR_TYPE_OPTIONS}
+              value={(field.value as string) || undefined}
+              onChange={(v?: string) => field.onChange(v ?? '')}
+            />
+          );
+        if (meta.kind === 'text') return <Input {...(field as object)} placeholder="투자자명" />;
         if (meta.kind === 'count')
           return <InputNumber {...(field as object)} min={0} className="w-full" addonAfter="명" />;
         return (
@@ -100,13 +132,18 @@ export function MetricFormModal({
   onClose,
 }: MetricFormModalProps) {
   const cfg = GROUP_CONFIG[group];
+  const { data: fundOptions = [] } = useFundOptions();
   const findByYear = (year: string) => metrics.find((m) => formatDate(m.recordDate, 'YYYY') === year);
 
   // 마운트 시 기본 연도(올해)에 값이 있으면 불러와 채운다.
   const buildDefaults = (): StartupMetricInput => {
     const d: Record<string, unknown> = { ...EMPTY, recordDate: `${dayjs().format('YYYY')}-12-31` };
     const ex = findByYear(dayjs().format('YYYY'));
-    if (ex) cfg.fields.forEach((f) => (d[f] = ex[f as keyof StartupMetric]));
+    if (ex) {
+      cfg.fields.forEach((f) => (d[f] = ex[f as keyof StartupMetric]));
+      // 투자 카드는 자사 투자 재원 펀드(fundId)도 함께 불러온다(cfg.fields 외 별도 처리).
+      if (group === 'investment') d.fundId = ex.fundId;
+    }
     return d as StartupMetricInput;
   };
 
@@ -126,13 +163,14 @@ export function MetricFormModal({
   const prefill = (year: string) => {
     const ex = findByYear(year);
     cfg.fields.forEach((f) => setValue(f, (ex ? ex[f as keyof StartupMetric] : EMPTY[f]) as never));
+    if (group === 'investment') setValue('fundId', ex ? ex.fundId : '');
   };
 
   const selectedYear = formatDate(watch('recordDate'), 'YYYY');
   const existingSel = findByYear(selectedYear);
 
   return (
-    <Modal title={`${cfg.title} (연도별)`} open={open} onCancel={onClose} footer={null} destroyOnClose>
+    <Drawer title={`${cfg.title} (연도별)`} width={480} open={open} onClose={onClose} destroyOnClose>
       {open ? (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
           <div>
@@ -152,8 +190,10 @@ export function MetricFormModal({
                 />
               )}
             />
-            <p className="mt-1 text-xs text-yna-sub">
-              {existingSel ? '기존 값을 불러왔습니다. 수정 후 저장하세요.' : '선택한 연도로 새로 등록됩니다.'}
+            <p className={`mt-1 text-xs ${existingSel ? 'text-yna-point' : 'text-yna-sub'}`}>
+              {existingSel
+                ? '이미 등록된 연도입니다. 기존 값을 수정합니다(중복 생성되지 않음).'
+                : '선택한 연도로 새로 등록됩니다.'}
             </p>
             {err(errors.recordDate?.message)}
           </div>
@@ -166,6 +206,31 @@ export function MetricFormModal({
             </div>
           ))}
 
+          {group === 'investment' && watch('investorType') === 'internal' ? (
+            <div>
+              <label className="mb-1 block text-sm text-yna-main">투자 재원 펀드 (자사)</label>
+              <Controller
+                name="fundId"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    showSearch
+                    allowClear
+                    optionFilterProp="label"
+                    className="w-full"
+                    placeholder="재원 펀드 선택"
+                    options={fundOptions}
+                    value={field.value || undefined}
+                    onChange={(v?: string) => field.onChange(v ?? '')}
+                  />
+                )}
+              />
+              <p className="mt-1 text-xs text-yna-sub">
+                자사 투자의 재원이 된 펀드를 연결하면 표에서 펀드 상세로 이동할 수 있습니다.
+              </p>
+            </div>
+          ) : null}
+
           <div className="flex items-center justify-between pt-2">
             <div>
               {existingSel ? (
@@ -177,12 +242,12 @@ export function MetricFormModal({
             <div className="flex gap-2">
               <Button onClick={onClose}>취소</Button>
               <Button type="primary" htmlType="submit" loading={submitting}>
-                저장
+                {existingSel ? '수정' : '추가'}
               </Button>
             </div>
           </div>
         </form>
       ) : null}
-    </Modal>
+    </Drawer>
   );
 }

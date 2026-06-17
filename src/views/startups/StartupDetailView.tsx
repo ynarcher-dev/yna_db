@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Button, Space, Alert, Descriptions, Avatar } from 'antd';
+import { Button, Space, Descriptions, Avatar } from 'antd';
 import { HiOutlineOfficeBuilding, HiArrowLeft } from 'react-icons/hi';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useStartup, useStartupMutations } from '@/hooks/useStartups';
 import { useAuthStore } from '@/stores/authStore';
 import { useAppToast } from '@/components/common/useAppToast';
@@ -13,6 +13,13 @@ import { StartupFormDrawer } from '@/components/startups/StartupFormDrawer';
 import { ShareholdersBlock } from '@/components/startups/ShareholdersBlock';
 import { MetricsBlock } from '@/components/startups/MetricsBlock';
 import { FollowupsBlock } from '@/components/startups/FollowupsBlock';
+import { BusinessTeamBlock } from '@/components/startups/BusinessTeamBlock';
+import { DiagnosisBlock } from '@/components/startups/DiagnosisBlock';
+import { NewsroomBlock } from '@/components/startups/NewsroomBlock';
+import { MemoBlock } from '@/components/startups/MemoBlock';
+import { EntityFilesBlock } from '@/components/common/EntityFilesBlock';
+import { EntityManagersPanel } from '@/components/common/EntityManagersPanel';
+import { StartupRelatedBlocks } from '@/components/startups/StartupRelatedBlocks';
 import { formatDate } from '@/lib/formatters';
 
 /**
@@ -67,7 +74,7 @@ export function StartupDetailView() {
           <HiArrowLeft /> 스타트업 목록
         </button>
         <Space>
-          <Button onClick={() => setEditOpen(true)}>수정</Button>
+          <Button onClick={() => setEditOpen(true)}>기본 수정</Button>
           {role === 'admin' ? (
             <Button danger onClick={handleDelete}>
               삭제
@@ -95,16 +102,7 @@ export function StartupDetailView() {
         </div>
         <Descriptions column={{ xs: 1, md: 2 }} size="small">
           <Descriptions.Item label="대표자">{startup.ceoName}</Descriptions.Item>
-          <Descriptions.Item label="담당 심사역">
-            {startup.managerId ? (
-              <Link className="text-yna-point" to={`/managers/${startup.managerId}`}>
-                {startup.managerName || '심사역'}
-              </Link>
-            ) : (
-              '-'
-            )}
-          </Descriptions.Item>
-          <Descriptions.Item label="작성자">{startup.authorName || '관리자'}</Descriptions.Item>
+          <Descriptions.Item label="책임자">{startup.authorName || '관리자'}</Descriptions.Item>
           <Descriptions.Item label="등록일">{formatDate(startup.createdAt)}</Descriptions.Item>
           <Descriptions.Item label="수정일">{formatDate(startup.updatedAt)}</Descriptions.Item>
         </Descriptions>
@@ -115,22 +113,49 @@ export function StartupDetailView() {
         ) : null}
       </div>
 
-      {/* 성장 지표 (재무현황·고용·투자현황 막대그래프) */}
-      <MetricsBlock startupId={startup.id} />
+      {/* 담당 심사역(다대다) 배정 패널 — 책임자(작성자)와 별개 */}
+      <EntityManagersPanel kind="startup" entityId={startup.id} title="담당 심사역" />
 
-      {/* 주주 구성 (표 + 지분율 PIE) — 성장 지표 바로 아래 */}
-      <ShareholdersBlock shareholders={startup.shareholders} />
+      {/* 카드 섹션: 기본 수정에서 비활성화한 섹션은 숨긴다 (startup.sections) */}
+
+      {/* 비즈니스 & 팀 역량 — 성장 지표 위 */}
+      {startup.sections.businessTeam ? (
+        <BusinessTeamBlock startup={startup} onSaved={() => void refetch()} />
+      ) : null}
+
+      {/* 성장 지표 (비즈니스 현황 + 재무·매출·고용·투자 막대그래프) */}
+      {startup.sections.metrics ? (
+        <MetricsBlock startup={startup} onSaved={() => void refetch()} />
+      ) : null}
+
+      {/* 주주 구성 (표 + 지분율 PIE) */}
+      {startup.sections.shareholders ? (
+        <ShareholdersBlock startup={startup} onSaved={() => void refetch()} />
+      ) : null}
+
+      {/* 기업진단 — 주주 구성 아래 */}
+      {startup.sections.diagnosis ? (
+        <DiagnosisBlock startup={startup} onSaved={() => void refetch()} />
+      ) : null}
+
+      {/* 뉴스룸 — 네이버 뉴스 API 연동 예정 */}
+      {startup.sections.newsroom ? <NewsroomBlock startup={startup} /> : null}
 
       {/* 후속 보고 · 마일스톤 트래커 */}
-      <FollowupsBlock startupId={startup.id} />
+      {startup.sections.followups ? <FollowupsBlock startupId={startup.id} /> : null}
 
-      {/* 연계 블록 (프로그램·프로젝트 도메인 개발 후 연결) */}
-      <Alert
-        type="info"
-        showIcon
-        message="참여 프로그램 · 프로젝트"
-        description="참여 프로그램·프로젝트 연동은 해당 도메인(프로그램/프로젝트) 개발 시 연결됩니다."
-      />
+      {/* 메모 · 회의록 (시계열 타임라인) */}
+      {startup.sections.memo ? (
+        <MemoBlock startup={startup} onSaved={() => void refetch()} />
+      ) : null}
+
+      {/* 첨부파일 (전 도메인 공통 카드) */}
+      {startup.sections.attachments ? (
+        <EntityFilesBlock entityType="startup" entityId={startup.id} />
+      ) : null}
+
+      {/* 역방향 연계: 참여 프로그램·프로젝트·투자받은 펀드 */}
+      <StartupRelatedBlocks startupId={startup.id} />
 
       <StartupFormDrawer
         open={editOpen}

@@ -1,5 +1,6 @@
 import type { AppRole } from './database';
 import { normalizeBiography, type Biography } from './biography';
+import { normalizeManagerSections, type ManagerSections } from '@/lib/managerSections';
 
 /** 심사역 (camelCase 화면 모델, 5_managers.md Manager) */
 export interface Manager {
@@ -21,6 +22,8 @@ export interface Manager {
   departmentId: string;
   /** 소속 본부명 (departments 임베드). 없으면 빈 문자열 */
   departmentName: string;
+  /** 상세 카드 섹션 표시/숨김 맵(Admin 전용 설정). 비활성 섹션은 상세 화면에서 숨긴다 */
+  sections: ManagerSections;
   deletedAt?: string;
   createdAt: string;
   /** 최종반영일 (마지막 수정 시각) */
@@ -42,6 +45,7 @@ export interface ManagerRow {
   phone: string | null;
   email: string;
   department_id: string | null;
+  sections: Partial<Record<string, boolean>> | null;
   deleted_at: string | null;
   created_at: string;
   updated_at: string;
@@ -62,6 +66,7 @@ export function mapManagerRow(row: ManagerRow): Manager {
     email: row.email,
     departmentId: row.department_id ?? '',
     departmentName: row.department?.name ?? '',
+    sections: normalizeManagerSections(row.sections),
     deletedAt: row.deleted_at ?? undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,

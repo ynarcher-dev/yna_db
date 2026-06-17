@@ -32,6 +32,7 @@ function toInput(e: Expert): ExpertInput {
     profileImageUrl: e.profileImageUrl,
     greeting: e.greeting,
     biography: e.biography,
+    sections: e.sections,
   };
 }
 

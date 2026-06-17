@@ -115,9 +115,9 @@ export function StartupsListView() {
     {
       title: '담당 심사역',
       key: 'manager',
-      width: 120,
-      ellipsis: true,
-      render: (_, r) => r.managerName || '-',
+      width: 140,
+      ellipsis: { showTitle: true },
+      render: (_, r) => (r.managerNames.length ? r.managerNames.join(', ') : '-'),
     },
     {
       title: '기업 설명',

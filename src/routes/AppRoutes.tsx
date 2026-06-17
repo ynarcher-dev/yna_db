@@ -14,6 +14,12 @@ import { ManagersListView } from '@/views/managers/ManagersListView';
 import { ManagerDetailView } from '@/views/managers/ManagerDetailView';
 import { StartupsListView } from '@/views/startups/StartupsListView';
 import { StartupDetailView } from '@/views/startups/StartupDetailView';
+import { ProjectsListView } from '@/views/projects/ProjectsListView';
+import { ProjectDetailView } from '@/views/projects/ProjectDetailView';
+import { FundsListView } from '@/views/funds/FundsListView';
+import { FundDetailView } from '@/views/funds/FundDetailView';
+import { ProgramsListView } from '@/views/programs/ProgramsListView';
+import { ProgramDetailView } from '@/views/programs/ProgramDetailView';
 import { NotFound } from '@/views/NotFound';
 import { LoginView } from '@/views/auth/LoginView';
 import { OnboardingPasswordView } from '@/views/auth/OnboardingPasswordView';
@@ -51,13 +57,27 @@ export function AppRoutes() {
           <Route path="/managers/:id" element={<ManagerDetailView />} />
           <Route path="/startups" element={<StartupsListView />} />
           <Route path="/startups/:id" element={<StartupDetailView />} />
+          <Route path="/projects" element={<ProjectsListView />} />
+          <Route path="/projects/:id" element={<ProjectDetailView />} />
+          <Route path="/funds" element={<FundsListView />} />
+          <Route path="/funds/:id" element={<FundDetailView />} />
+          <Route path="/programs" element={<ProgramsListView />} />
+          <Route path="/programs/:id" element={<ProgramDetailView />} />
 
           {/* 나머지 도메인은 아직 플레이스홀더 (Phase 3·4 에서 대체) */}
           {NAV_ITEMS.filter(
             (item) =>
-              !['/', '/partners', '/experts', '/departments', '/managers', '/startups'].includes(
-                item.path,
-              ),
+              ![
+                '/',
+                '/partners',
+                '/experts',
+                '/departments',
+                '/managers',
+                '/startups',
+                '/projects',
+                '/funds',
+                '/programs',
+              ].includes(item.path),
           ).map(
             (item) => (
               <Route

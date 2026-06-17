@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { biographySchema } from './biography';
+import { MANAGER_SECTIONS } from '@/lib/managerSections';
 
 /**
  * 심사역 프로필 등록/수정 검증 스키마 (5_managers.md 5.2/5.3, 17_conventions.md 3장).
@@ -21,6 +22,8 @@ export const managerSchema = z.object({
   profileImageUrl: z.string().url('올바른 URL 형식이 아닙니다.').or(z.literal('')),
   greeting: z.string().max(1000, '소개는 1000자 이내로 입력해 주세요.'),
   biography: biographySchema,
+  /** 상세 카드 섹션 표시/숨김(Admin 전용 — self RPC 는 미전송). */
+  sections: MANAGER_SECTIONS.schema,
 });
 
 export type ManagerInput = z.infer<typeof managerSchema>;

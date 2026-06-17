@@ -89,6 +89,8 @@ function toAdminRow(input: ManagerInput) {
     profile_image_url: input.profileImageUrl ? input.profileImageUrl.trim() : null,
     greeting: input.greeting ? input.greeting.trim() : null,
     biography: input.biography,
+    // 표시 섹션은 Admin 전용 설정 → 전체 수정 경로에서만 갱신(본인 RPC 는 미포함).
+    sections: input.sections,
   };
 }
 

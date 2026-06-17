@@ -1,4 +1,5 @@
 import type { PartnerType } from './database';
+import { normalizePartnerSections, type PartnerSections } from '@/lib/partnerSections';
 
 /** 교류 협력 이력 로그 1건 (12_partners.md interaction_log) */
 export interface InteractionLogEntry {
@@ -17,6 +18,8 @@ export interface Partner {
   phone: string;
   email: string;
   interactionLog: InteractionLogEntry[];
+  /** 상세 카드 섹션 표시/숨김 맵. 비활성 섹션은 상세 화면에서 숨긴다 */
+  sections: PartnerSections;
   deletedAt?: string;
   createdAt: string;
   /** 최종반영일 (마지막 수정 시각) */
@@ -35,6 +38,7 @@ export interface PartnerRow {
   phone: string | null;
   email: string | null;
   interaction_log: InteractionLogEntry[] | null;
+  sections: Partial<Record<string, boolean>> | null;
   deleted_at: string | null;
   created_at: string;
   updated_at: string;
@@ -52,6 +56,7 @@ export function mapPartnerRow(row: PartnerRow): Partner {
     phone: row.phone ?? '',
     email: row.email ?? '',
     interactionLog: row.interaction_log ?? [],
+    sections: normalizePartnerSections(row.sections),
     deletedAt: row.deleted_at ?? undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,

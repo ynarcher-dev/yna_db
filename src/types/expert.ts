@@ -1,5 +1,6 @@
 import type { ExpertType } from './database';
 import { normalizeBiography, type Biography } from './biography';
+import { normalizeExpertSections, type ExpertSections } from '@/lib/expertSections';
 
 /** 외부 전문가 (camelCase 화면 모델, 9_experts.md Expert) */
 export interface Expert {
@@ -22,6 +23,8 @@ export interface Expert {
   greeting: string;
   /** 약력 (학력/경력/자격증) */
   biography: Biography;
+  /** 상세 카드 섹션 표시/숨김 맵. 비활성 섹션은 상세 화면에서 숨긴다 */
+  sections: ExpertSections;
   deletedAt?: string;
   createdAt: string;
   /** 최종반영일 (마지막 수정 시각) */
@@ -44,6 +47,7 @@ export interface ExpertRow {
   profile_image_url: string | null;
   greeting: string | null;
   biography: Biography | null;
+  sections: Partial<Record<string, boolean>> | null;
   deleted_at: string | null;
   created_at: string;
   updated_at: string;
@@ -65,6 +69,7 @@ export function mapExpertRow(row: ExpertRow): Expert {
     profileImageUrl: row.profile_image_url ?? '',
     greeting: row.greeting ?? '',
     biography: normalizeBiography(row.biography),
+    sections: normalizeExpertSections(row.sections),
     deletedAt: row.deleted_at ?? undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,

@@ -27,9 +27,19 @@ export interface StartupMetric {
   fundingAmount: number;
   /** 투자 라운드 (예: Seed, Series A). 없으면 빈 문자열 */
   fundingRound: string;
+  /** 투자자명. 없으면 빈 문자열 */
+  investor: string;
+  /** 투자자 구분 (internal=자사 / external=외부). 없으면 빈 문자열 */
+  investorType: '' | 'internal' | 'external';
+  /** 자사(internal) 투자 재원 펀드 id. 없으면 빈 문자열 */
+  fundId: string;
+  /** 재원 펀드명 (funds 임베드). 없으면 빈 문자열 */
+  fundName: string;
   /** 비고. 없으면 빈 문자열 */
   remarks: string;
   createdAt: string;
+  /** 최종 수정 시각 */
+  updatedAt: string;
 }
 
 export interface StartupMetricRow {
@@ -46,8 +56,13 @@ export interface StartupMetricRow {
   valuation: number | string;
   funding_amount: number | string;
   funding_round: string | null;
+  investor: string | null;
+  investor_type: string | null;
+  fund_id: string | null;
   remarks: string | null;
   created_at: string;
+  updated_at: string;
+  fund: { name: string } | null;
 }
 
 export function mapStartupMetricRow(row: StartupMetricRow): StartupMetric {
@@ -65,7 +80,12 @@ export function mapStartupMetricRow(row: StartupMetricRow): StartupMetric {
     valuation: Number(row.valuation),
     fundingAmount: Number(row.funding_amount),
     fundingRound: row.funding_round ?? '',
+    investor: row.investor ?? '',
+    investorType: (row.investor_type as '' | 'internal' | 'external') ?? '',
+    fundId: row.fund_id ?? '',
+    fundName: row.fund?.name ?? '',
     remarks: row.remarks ?? '',
     createdAt: row.created_at,
+    updatedAt: row.updated_at,
   };
 }

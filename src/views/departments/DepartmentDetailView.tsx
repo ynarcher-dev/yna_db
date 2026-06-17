@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Space, Alert, Descriptions } from 'antd';
+import { Button, Space, Descriptions } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
 import { HiArrowLeft } from 'react-icons/hi';
 import { useDepartment, useDepartmentMutations } from '@/hooks/useDepartments';
@@ -8,6 +8,8 @@ import { useAppToast } from '@/components/common/useAppToast';
 import { TableSkeleton } from '@/components/common/TableSkeleton';
 import { EmptyState } from '@/components/common/EmptyState';
 import { DepartmentFormDrawer } from '@/components/departments/DepartmentFormDrawer';
+import { EntityFilesBlock } from '@/components/common/EntityFilesBlock';
+import { DepartmentRelatedBlocks } from '@/components/departments/DepartmentRelatedBlocks';
 import { formatDate } from '@/lib/formatters';
 
 /**
@@ -79,7 +81,7 @@ export function DepartmentDetailView() {
           <Descriptions.Item label="설립일">
             {department.establishedAt ? formatDate(department.establishedAt) : '-'}
           </Descriptions.Item>
-          <Descriptions.Item label="작성자">{department.authorName || '관리자'}</Descriptions.Item>
+          <Descriptions.Item label="책임자">{department.authorName || '관리자'}</Descriptions.Item>
           <Descriptions.Item label="설명" span={2}>
             {department.description || '-'}
           </Descriptions.Item>
@@ -88,13 +90,13 @@ export function DepartmentDetailView() {
         </Descriptions>
       </div>
 
-      {/* 연계 블록 (Phase 4) */}
-      <Alert
-        type="info"
-        showIcon
-        message="본부장·부서원 및 투자 성과"
-        description="본부장(leader) 임명, 소속 부서원 목록, 본부 투자 성과 비교는 심사역(managers)·스타트업(startups) 도메인(Phase 4) 개발 시 연결됩니다."
-      />
+      {/* 첨부파일 (전 도메인 공통 카드) */}
+      {department.sections.attachments ? (
+        <EntityFilesBlock entityType="department" entityId={department.id} />
+      ) : null}
+
+      {/* 역방향 연계: 소속 부서원 · 본부 투자 성과 (본부장 임명은 후속) */}
+      <DepartmentRelatedBlocks departmentId={department.id} />
 
       <DepartmentFormDrawer
         open={editOpen}

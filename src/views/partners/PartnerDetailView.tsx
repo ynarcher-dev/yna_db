@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Space, Timeline, Alert, Descriptions } from 'antd';
+import { Button, Space, Timeline, Descriptions } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
 import { HiArrowLeft } from 'react-icons/hi';
 import { usePartner, usePartnerMutations } from '@/hooks/usePartners';
@@ -9,6 +9,8 @@ import { TableSkeleton } from '@/components/common/TableSkeleton';
 import { EmptyState } from '@/components/common/EmptyState';
 import { PartnerTypeTag } from '@/components/partners/PartnerTypeTag';
 import { PartnerFormDrawer } from '@/components/partners/PartnerFormDrawer';
+import { EntityFilesBlock } from '@/components/common/EntityFilesBlock';
+import { PartnerRelatedBlocks } from '@/components/partners/PartnerRelatedBlocks';
 import { formatDate } from '@/lib/formatters';
 
 /**
@@ -85,39 +87,41 @@ export function PartnerDetailView() {
           <Descriptions.Item label="담당자">{partner.contactPerson}</Descriptions.Item>
           <Descriptions.Item label="연락처">{partner.phone || '-'}</Descriptions.Item>
           <Descriptions.Item label="이메일">{partner.email || '-'}</Descriptions.Item>
-          <Descriptions.Item label="작성자">{partner.authorName || '관리자'}</Descriptions.Item>
+          <Descriptions.Item label="책임자">{partner.authorName || '관리자'}</Descriptions.Item>
           <Descriptions.Item label="등록일">{formatDate(partner.createdAt)}</Descriptions.Item>
           <Descriptions.Item label="수정일">{formatDate(partner.updatedAt)}</Descriptions.Item>
         </Descriptions>
       </div>
 
-      {/* 교류 협력 히스토리 */}
-      <div className="rounded-lg border border-yna-border bg-white p-6">
-        <h2 className="mb-4 text-lg font-semibold text-yna-main">교류 협력 이력</h2>
-        {sortedLog.length === 0 ? (
-          <EmptyState message="등록된 교류 이력이 없습니다." />
-        ) : (
-          <Timeline
-            items={sortedLog.map((entry, i) => ({
-              key: i,
-              children: (
-                <div>
-                  <p className="text-sm text-yna-main">{entry.content}</p>
-                  <p className="text-xs text-gray-500">{formatDate(entry.date)}</p>
-                </div>
-              ),
-            }))}
-          />
-        )}
-      </div>
+      {/* 교류 협력 히스토리 (기본 수정에서 비활성화하면 숨김) */}
+      {partner.sections.interactionLog ? (
+        <div className="rounded-lg border border-yna-border bg-white p-6">
+          <h2 className="mb-4 text-lg font-semibold text-yna-main">교류 협력 이력</h2>
+          {sortedLog.length === 0 ? (
+            <EmptyState message="등록된 교류 이력이 없습니다." />
+          ) : (
+            <Timeline
+              items={sortedLog.map((entry, i) => ({
+                key: i,
+                children: (
+                  <div>
+                    <p className="text-sm text-yna-main">{entry.content}</p>
+                    <p className="text-xs text-gray-500">{formatDate(entry.date)}</p>
+                  </div>
+                ),
+              }))}
+            />
+          )}
+        </div>
+      ) : null}
 
-      {/* 연계 블록 (Phase 4) */}
-      <Alert
-        type="info"
-        showIcon
-        message="공동 참여 프로젝트"
-        description="협력사가 참여한 프로젝트 연동은 프로젝트 도메인(Phase 4) 개발 시 연결됩니다."
-      />
+      {/* 첨부파일 (전 도메인 공통 카드) */}
+      {partner.sections.attachments ? (
+        <EntityFilesBlock entityType="partner" entityId={partner.id} />
+      ) : null}
+
+      {/* 역방향 연계: 참여 프로젝트 */}
+      <PartnerRelatedBlocks partnerId={partner.id} />
 
       <PartnerFormDrawer
         open={editOpen}

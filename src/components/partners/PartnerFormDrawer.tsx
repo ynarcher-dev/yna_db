@@ -27,6 +27,7 @@ function toInput(p: Partner): PartnerInput {
     phone: p.phone,
     email: p.email,
     interactionLog: p.interactionLog,
+    sections: p.sections,
   };
 }
 

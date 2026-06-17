@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { biographySchema } from './biography';
+import { EXPERT_SECTIONS } from '@/lib/expertSections';
 
 /**
  * 전문가 등록/수정 검증 스키마 (9_experts.md 9.2, 17_conventions.md 3장).
@@ -24,6 +25,7 @@ export const expertSchema = z.object({
   profileImageUrl: z.string().url('올바른 URL 형식이 아닙니다.').or(z.literal('')),
   greeting: z.string().max(1000, '소개는 1000자 이내로 입력해 주세요.'),
   biography: biographySchema,
+  sections: EXPERT_SECTIONS.schema,
 });
 
 export type ExpertInput = z.infer<typeof expertSchema>;
