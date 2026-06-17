@@ -9,11 +9,17 @@ import { defineSections, type SectionVisibility } from './sectionVisibility';
  * 허용 컬럼만 갱신하므로 sections 를 건드리지 않는다(폼은 admin 모드에서만 토글 노출).
  * 키 순서 = 상세 화면 렌더 순서.
  */
-export const MANAGER_SECTIONS = defineSections(['biography', 'intro', 'attachments'] as const, {
-  biography: '약력',
-  intro: '소개',
-  attachments: '첨부파일',
-});
+export const MANAGER_SECTIONS = defineSections(
+  ['biography', 'intro', 'startups', 'projects', 'programs', 'attachments'] as const,
+  {
+    biography: '약력',
+    intro: '소개',
+    startups: '담당 스타트업 (연동)',
+    projects: '담당 프로젝트 (연동)',
+    programs: '운영 프로그램 (연동)',
+    attachments: '첨부파일',
+  },
+);
 
 export type ManagerSectionKey = (typeof MANAGER_SECTIONS.keys)[number];
 export type ManagerSections = SectionVisibility<ManagerSectionKey>;

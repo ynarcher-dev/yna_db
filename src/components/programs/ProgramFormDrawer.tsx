@@ -13,7 +13,8 @@ interface ProgramFormDrawerProps {
   open: boolean;
   program?: Program;
   onClose: () => void;
-  onSaved?: () => void;
+  /** 저장 성공 후 콜백. 생성·수정된 프로그램 id 를 넘겨 역방향 자동 매핑에 쓰게 한다. */
+  onSaved?: (programId: string) => void;
 }
 
 function toInput(p: Program): ProgramInput {
@@ -42,7 +43,7 @@ export function ProgramFormDrawer({ open, program, onClose, onSaved }: ProgramFo
         {
           onSuccess: () => {
             toast.success('프로그램 정보가 수정되었습니다.');
-            onSaved?.();
+            onSaved?.(program.id);
             onClose();
           },
           onError: (err) => toast.error('수정에 실패했습니다.', err),
@@ -50,9 +51,9 @@ export function ProgramFormDrawer({ open, program, onClose, onSaved }: ProgramFo
       );
     } else {
       create.mutate(values, {
-        onSuccess: () => {
+        onSuccess: (created) => {
           toast.success('프로그램이 등록되었습니다.');
-          onSaved?.();
+          onSaved?.(created.id);
           onClose();
         },
         onError: (err) => toast.error('등록에 실패했습니다.', err),

@@ -3,7 +3,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Input, Select, Button } from 'antd';
 import { managerSchema, type ManagerInput } from '@/schemas/manager';
 import { MANAGER_SECTIONS } from '@/lib/managerSections';
-import { BiographyEditor } from '@/components/common/BiographyEditor';
 import { ProfileImageUploader } from '@/components/common/ProfileImageUploader';
 import { SectionVisibilityField } from '@/components/common/SectionVisibilityField';
 
@@ -17,7 +16,8 @@ interface ManagerFormProps {
   /** 프로필 이미지 업로드 경로용 대상 심사역 id */
   managerId: string;
   defaultValues: ManagerInput;
-  departmentOptions: { value: string; label: string }[];
+  /** 소속 팀 옵션 (라벨 "회사 · 그룹 · 팀") */
+  teamOptions: { value: string; label: string }[];
   submitting?: boolean;
   onSubmit: (values: ManagerInput) => void;
   onCancel: () => void;
@@ -31,7 +31,7 @@ export function ManagerForm({
   mode,
   managerId,
   defaultValues,
-  departmentOptions,
+  teamOptions,
   submitting,
   onSubmit,
   onCancel,
@@ -89,17 +89,19 @@ export function ManagerForm({
             <FieldError message={errors.position?.message} />
           </div>
           <div>
-            <label className="mb-1 block text-sm text-yna-main">소속 본부</label>
+            <label className="mb-1 block text-sm text-yna-main">소속 (팀)</label>
             <Controller
-              name="departmentId"
+              name="teamId"
               control={control}
               render={({ field }) => (
                 <Select
                   {...field}
                   allowClear
+                  showSearch
+                  optionFilterProp="label"
                   className="w-full"
-                  placeholder="소속 본부 선택"
-                  options={departmentOptions}
+                  placeholder="소속 팀 선택 (회사 · 그룹 · 팀)"
+                  options={teamOptions}
                   onChange={(v) => field.onChange(v ?? '')}
                 />
               )}
@@ -116,22 +118,6 @@ export function ManagerForm({
           render={({ field }) => <Input {...field} placeholder="010-0000-0000" />}
         />
         <FieldError message={errors.phone?.message} />
-      </div>
-
-      <div>
-        <label className="mb-1 block text-sm text-yna-main">소개</label>
-        <Controller
-          name="greeting"
-          control={control}
-          render={({ field }) => (
-            <Input.TextArea
-              {...field}
-              rows={3}
-              placeholder="홈페이지 등에 노출될 소개글을 입력하세요."
-            />
-          )}
-        />
-        <FieldError message={errors.greeting?.message} />
       </div>
 
       <div>
@@ -153,10 +139,7 @@ export function ManagerForm({
         <FieldError message={errors.specialties?.message} />
       </div>
 
-      <div>
-        <label className="mb-2 block text-sm font-medium text-yna-main">약력</label>
-        <BiographyEditor control={control} />
-      </div>
+      {/* 소개·약력은 기본 수정에서 분리 — 상세 화면의 각 카드 '수정'에서 편집한다. */}
 
       {/* 표시 섹션 토글은 Admin 전용 (본인 수정 RPC 는 sections 미전송) */}
       {isAdmin ? (

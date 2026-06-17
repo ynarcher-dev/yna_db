@@ -8,8 +8,8 @@ import { PartnersListView } from '@/views/partners/PartnersListView';
 import { PartnerDetailView } from '@/views/partners/PartnerDetailView';
 import { ExpertsListView } from '@/views/experts/ExpertsListView';
 import { ExpertDetailView } from '@/views/experts/ExpertDetailView';
-import { DepartmentsListView } from '@/views/departments/DepartmentsListView';
-import { DepartmentDetailView } from '@/views/departments/DepartmentDetailView';
+import { TeamsListView } from '@/views/teams/TeamsListView';
+import { TeamDetailView } from '@/views/teams/TeamDetailView';
 import { ManagersListView } from '@/views/managers/ManagersListView';
 import { ManagerDetailView } from '@/views/managers/ManagerDetailView';
 import { StartupsListView } from '@/views/startups/StartupsListView';
@@ -51,8 +51,9 @@ export function AppRoutes() {
           <Route path="/partners/:id" element={<PartnerDetailView />} />
           <Route path="/experts" element={<ExpertsListView />} />
           <Route path="/experts/:id" element={<ExpertDetailView />} />
-          <Route path="/departments" element={<DepartmentsListView />} />
-          <Route path="/departments/:id" element={<DepartmentDetailView />} />
+          {/* 소속 관리 = 팀(단위) 목록·상세. 경로(/departments)는 유지하되 화면은 팀. */}
+          <Route path="/departments" element={<TeamsListView />} />
+          <Route path="/departments/:id" element={<TeamDetailView />} />
           <Route path="/managers" element={<ManagersListView />} />
           <Route path="/managers/:id" element={<ManagerDetailView />} />
           <Route path="/startups" element={<StartupsListView />} />

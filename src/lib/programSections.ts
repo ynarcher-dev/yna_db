@@ -6,10 +6,11 @@ import { defineSections, type SectionVisibility } from './sectionVisibility';
  * 키 순서 = 상세 화면 렌더 순서.
  */
 export const PROGRAM_SECTIONS = defineSections(
-  ['managers', 'startups', 'calendar', 'attachments'] as const,
+  ['managers', 'startups', 'partners', 'calendar', 'attachments'] as const,
   {
     managers: '운영 심사역',
     startups: '참여 스타트업',
+    partners: '참여 협력사',
     calendar: '마일스톤 캘린더',
     attachments: '첨부파일',
   },

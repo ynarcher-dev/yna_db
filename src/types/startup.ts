@@ -133,6 +133,8 @@ export interface Startup {
   createdAt: string;
   /** 최종반영일 (마지막 수정 시각) */
   updatedAt: string;
+  /** 작성자(created_by) 심사역 id. 담당자 패널 작성자 표시에 사용. 없으면 빈 문자열 */
+  createdById: string;
   /** 작성자(심사역) 이름. 없으면 빈 문자열 */
   authorName: string;
 }
@@ -196,6 +198,7 @@ export function mapStartupRow(row: StartupRow): Startup {
     deletedAt: row.deleted_at ?? undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    createdById: row.created_by ?? '',
     authorName: row.author?.name ?? '',
   };
 }

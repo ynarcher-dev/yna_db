@@ -30,6 +30,8 @@ export interface Fund {
   lpComposition: LpEntry[];
   /** 상세 카드 섹션 표시/숨김 맵. 비활성 섹션은 상세 화면에서 숨긴다 */
   sections: FundSections;
+  /** 담당자(다대다 fund_managers) 심사역 이름 목록. 목록 표시용 */
+  managerNames: string[];
   deletedAt?: string;
   createdAt: string;
   updatedAt: string;
@@ -52,6 +54,8 @@ export interface FundRow {
   updated_at: string;
   created_by: string | null;
   author: { name: string } | null;
+  /** 담당자(다대다) 임베드 결과. 목록/상세 조회 시 함께 로드 */
+  fund_managers: { manager: { name: string } | null }[] | null;
 }
 
 export function mapFundRow(row: FundRow): Fund {
@@ -67,6 +71,9 @@ export function mapFundRow(row: FundRow): Fund {
       percentage: Number(e.percentage) || 0,
     })),
     sections: normalizeFundSections(row.sections),
+    managerNames: (row.fund_managers ?? [])
+      .map((fm) => fm.manager?.name ?? '')
+      .filter(Boolean),
     deletedAt: row.deleted_at ?? undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,

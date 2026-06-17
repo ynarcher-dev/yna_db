@@ -18,10 +18,16 @@ export interface Manager {
   biography: Biography;
   phone: string;
   email: string;
-  /** 소속 본부 id. 없으면 빈 문자열 */
+  /** 소속 팀 id. 없으면 빈 문자열 */
+  teamId: string;
+  /** 소속 팀명 (teams 임베드). 없으면 빈 문자열 */
+  teamName: string;
+  /** 소속 그룹 id (departments.id = 팀의 상위 그룹). 없으면 빈 문자열 */
   departmentId: string;
-  /** 소속 본부명 (departments 임베드). 없으면 빈 문자열 */
+  /** 소속 그룹명 (departments 임베드). 없으면 빈 문자열 */
   departmentName: string;
+  /** 소속 회사명 (그룹의 회사). 없으면 빈 문자열 */
+  companyName: string;
   /** 상세 카드 섹션 표시/숨김 맵(Admin 전용 설정). 비활성 섹션은 상세 화면에서 숨긴다 */
   sections: ManagerSections;
   deletedAt?: string;
@@ -44,12 +50,16 @@ export interface ManagerRow {
   biography: Biography | null;
   phone: string | null;
   email: string;
+  team_id: string | null;
   department_id: string | null;
   sections: Partial<Record<string, boolean>> | null;
   deleted_at: string | null;
   created_at: string;
   updated_at: string;
-  department: { name: string } | null;
+  /** 소속 그룹(부서) 임베드 — 그룹명·회사 */
+  department: { name: string; company: string } | null;
+  /** 소속 팀 임베드 — 팀명 */
+  team: { name: string } | null;
 }
 
 export function mapManagerRow(row: ManagerRow): Manager {
@@ -64,8 +74,11 @@ export function mapManagerRow(row: ManagerRow): Manager {
     biography: normalizeBiography(row.biography),
     phone: row.phone ?? '',
     email: row.email,
+    teamId: row.team_id ?? '',
+    teamName: row.team?.name ?? '',
     departmentId: row.department_id ?? '',
     departmentName: row.department?.name ?? '',
+    companyName: row.department?.company ?? '',
     sections: normalizeManagerSections(row.sections),
     deletedAt: row.deleted_at ?? undefined,
     createdAt: row.created_at,

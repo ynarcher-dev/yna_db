@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Table, Input, Select, Button, Alert, Tag } from 'antd';
+import { Table, Input, Select, Button, Alert } from 'antd';
 import type { TableProps } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { useListParams } from '@/hooks/useListParams';
@@ -9,8 +9,6 @@ import { useAuthStore } from '@/stores/authStore';
 import { useAppToast } from '@/components/common/useAppToast';
 import { EmptyState } from '@/components/common/EmptyState';
 import { ListPagination } from '@/components/common/listPagination';
-import { RoleTag } from '@/components/managers/RoleTag';
-import { SpecialtyTags } from '@/components/experts/SpecialtyTags';
 import { APP_ROLE_OPTIONS } from '@/lib/labels';
 import {
   numberColumn,
@@ -19,6 +17,7 @@ import {
   updatedAtColumn,
   actionsColumn,
 } from '@/lib/tableColumns';
+import { managerColumns } from '@/lib/listColumns';
 import type { Manager } from '@/types/manager';
 
 /**
@@ -75,39 +74,7 @@ export function ManagersListView() {
 
   const columns: TableProps<Manager>['columns'] = [
     numberColumn<Manager>(params.page, params.pageSize, total),
-    {
-      title: '이름',
-      key: 'name',
-      width: 130,
-      sorter: true,
-      sortOrder: sortOrderOf('name'),
-      ellipsis: true,
-      render: (_, r) => (
-        <span className="font-medium text-yna-main">
-          {r.name}
-          {r.id === myId ? <Tag className="ml-2">나</Tag> : null}
-        </span>
-      ),
-    },
-    { title: '직급', key: 'position', width: 120, ellipsis: true, render: (_, r) => r.position },
-    {
-      title: '역할',
-      key: 'role',
-      width: 90,
-      render: (_, r) => <RoleTag role={r.role} />,
-    },
-    {
-      title: '소속',
-      key: 'department',
-      ellipsis: true,
-      render: (_, r) => r.departmentName || '-',
-    },
-    {
-      title: '관심 분야',
-      key: 'specialties',
-      ellipsis: true,
-      render: (_, r) => <SpecialtyTags specialties={r.specialties} />,
-    },
+    ...managerColumns({ sortOrderOf, myId }),
     authorColumn<Manager>(),
     createdAtColumn<Manager>(sortOrderOf('created_at')),
     updatedAtColumn<Manager>(sortOrderOf('updated_at')),
@@ -140,7 +107,7 @@ export function ManagersListView() {
         />
         <Select
           allowClear
-          placeholder="역할 전체"
+          placeholder="직책 전체"
           options={APP_ROLE_OPTIONS}
           value={params.filters.role ?? undefined}
           onChange={(value) => params.setFilter('role', value)}

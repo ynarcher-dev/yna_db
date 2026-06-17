@@ -350,6 +350,22 @@ export const PROGRAM_STARTUP_STATUS_COLOR: Record<ProgramStartupStatus, string> 
   dropped: 'red',
 };
 
+/**
+ * 소속 회사 (departments.company, 그룹이 속한 회사). 발주자 확정(2026-06-17):
+ * 와이앤아처 / 와이앤아처벤처스 / 와이앤아처인베스트먼트 3종 고정.
+ * DB 는 varchar(CHECK 제약)이며 화면 입력은 아래 값으로 제한한다(값=라벨).
+ */
+export const COMPANY_VALUES = [
+  '와이앤아처',
+  '와이앤아처벤처스',
+  '와이앤아처인베스트먼트',
+] as const;
+
+export type Company = (typeof COMPANY_VALUES)[number];
+
+/** antd Select 옵션 (값=라벨) */
+export const COMPANY_OPTIONS = COMPANY_VALUES.map((value) => ({ value, label: value }));
+
 /** 시스템 역할 한국어 라벨 (5_managers.md role) */
 export const APP_ROLE_LABEL: Record<AppRole, string> = {
   admin: '관리자',

@@ -84,10 +84,10 @@ export function PartnerDetailView() {
         </div>
         <Descriptions column={{ xs: 1, md: 2 }} size="small">
           <Descriptions.Item label="부서명">{partner.department || '-'}</Descriptions.Item>
-          <Descriptions.Item label="담당자">{partner.contactPerson}</Descriptions.Item>
+          <Descriptions.Item label="담당자(해당 기업)">{partner.contactPerson}</Descriptions.Item>
           <Descriptions.Item label="연락처">{partner.phone || '-'}</Descriptions.Item>
           <Descriptions.Item label="이메일">{partner.email || '-'}</Descriptions.Item>
-          <Descriptions.Item label="책임자">{partner.authorName || '관리자'}</Descriptions.Item>
+          <Descriptions.Item label="작성자">{partner.authorName || '관리자'}</Descriptions.Item>
           <Descriptions.Item label="등록일">{formatDate(partner.createdAt)}</Descriptions.Item>
           <Descriptions.Item label="수정일">{formatDate(partner.updatedAt)}</Descriptions.Item>
         </Descriptions>
@@ -115,13 +115,13 @@ export function PartnerDetailView() {
         </div>
       ) : null}
 
-      {/* 첨부파일 (전 도메인 공통 카드) */}
+      {/* 역방향 연계: 참여 프로젝트·프로그램 (각 섹션 토글로 표시/숨김) */}
+      <PartnerRelatedBlocks partnerId={partner.id} sections={partner.sections} />
+
+      {/* 첨부파일 (전 도메인 공통 카드) — 항상 최하단 */}
       {partner.sections.attachments ? (
         <EntityFilesBlock entityType="partner" entityId={partner.id} />
       ) : null}
-
-      {/* 역방향 연계: 참여 프로젝트 */}
-      <PartnerRelatedBlocks partnerId={partner.id} />
 
       <PartnerFormDrawer
         open={editOpen}

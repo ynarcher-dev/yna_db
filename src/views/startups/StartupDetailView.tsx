@@ -102,7 +102,7 @@ export function StartupDetailView() {
         </div>
         <Descriptions column={{ xs: 1, md: 2 }} size="small">
           <Descriptions.Item label="대표자">{startup.ceoName}</Descriptions.Item>
-          <Descriptions.Item label="책임자">{startup.authorName || '관리자'}</Descriptions.Item>
+          <Descriptions.Item label="작성자">{startup.authorName || '관리자'}</Descriptions.Item>
           <Descriptions.Item label="등록일">{formatDate(startup.createdAt)}</Descriptions.Item>
           <Descriptions.Item label="수정일">{formatDate(startup.updatedAt)}</Descriptions.Item>
         </Descriptions>
@@ -113,8 +113,10 @@ export function StartupDetailView() {
         ) : null}
       </div>
 
-      {/* 담당 심사역(다대다) 배정 패널 — 책임자(작성자)와 별개 */}
-      <EntityManagersPanel kind="startup" entityId={startup.id} title="담당 심사역" />
+      {/* 담당자(다대다) 배정 패널 — 작성자(created_by)는 자동 편입된 필수 담당자 */}
+      {startup.sections.managers ? (
+        <EntityManagersPanel kind="startup" entityId={startup.id} authorId={startup.createdById} />
+      ) : null}
 
       {/* 카드 섹션: 기본 수정에서 비활성화한 섹션은 숨긴다 (startup.sections) */}
 
@@ -149,13 +151,13 @@ export function StartupDetailView() {
         <MemoBlock startup={startup} onSaved={() => void refetch()} />
       ) : null}
 
-      {/* 첨부파일 (전 도메인 공통 카드) */}
+      {/* 역방향 연계(매핑): 참여 프로그램·프로젝트. 투자 재원·금액은 위 투자현황이 담당 */}
+      <StartupRelatedBlocks startupId={startup.id} sections={startup.sections} />
+
+      {/* 첨부파일 (전 도메인 공통 카드) — 항상 최하단 */}
       {startup.sections.attachments ? (
         <EntityFilesBlock entityType="startup" entityId={startup.id} />
       ) : null}
-
-      {/* 역방향 연계: 참여 프로그램·프로젝트·투자받은 펀드 */}
-      <StartupRelatedBlocks startupId={startup.id} />
 
       <StartupFormDrawer
         open={editOpen}

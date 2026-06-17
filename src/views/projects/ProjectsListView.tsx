@@ -9,9 +9,6 @@ import { useAuthStore } from '@/stores/authStore';
 import { useAppToast } from '@/components/common/useAppToast';
 import { EmptyState } from '@/components/common/EmptyState';
 import { ListPagination } from '@/components/common/listPagination';
-import { ProjectTypeTag } from '@/components/projects/ProjectTypeTag';
-import { ProjectStageTag } from '@/components/projects/ProjectStageTag';
-import { ProjectPriorityTag } from '@/components/projects/ProjectPriorityTag';
 import { ProjectFormDrawer } from '@/components/projects/ProjectFormDrawer';
 import {
   PROJECT_PRIORITY_OPTIONS,
@@ -25,7 +22,7 @@ import {
   updatedAtColumn,
   actionsColumn,
 } from '@/lib/tableColumns';
-import { formatDate } from '@/lib/formatters';
+import { projectColumns } from '@/lib/listColumns';
 import type { Project } from '@/types/project';
 
 /**
@@ -86,47 +83,7 @@ export function ProjectsListView() {
 
   const columns: TableProps<Project>['columns'] = [
     numberColumn<Project>(params.page, params.pageSize, total),
-    {
-      title: '프로젝트명',
-      key: 'name',
-      width: 220,
-      sorter: true,
-      sortOrder: sortOrderOf('name'),
-      ellipsis: true,
-      render: (_, r) => <span className="font-medium text-yna-main">{r.name}</span>,
-    },
-    {
-      title: '유형',
-      key: 'project_type',
-      width: 130,
-      render: (_, r) => <ProjectTypeTag type={r.projectType} etc={r.projectTypeEtc} />,
-    },
-    {
-      title: '상태',
-      key: 'stage',
-      width: 90,
-      render: (_, r) => <ProjectStageTag stage={r.stage} />,
-    },
-    {
-      title: '우선순위',
-      key: 'priority',
-      width: 90,
-      render: (_, r) => <ProjectPriorityTag priority={r.priority} />,
-    },
-    {
-      title: '기간',
-      key: 'period',
-      width: 180,
-      ellipsis: true,
-      render: (_, r) => `${formatDate(r.startDate)} ~ ${r.endDate ? formatDate(r.endDate) : ''}`,
-    },
-    {
-      title: '담당자',
-      key: 'managers',
-      width: 140,
-      ellipsis: { showTitle: true },
-      render: (_, r) => (r.managerNames.length ? r.managerNames.join(', ') : '-'),
-    },
+    ...projectColumns({ sortOrderOf }),
     authorColumn<Project>(),
     createdAtColumn<Project>(sortOrderOf('created_at')),
     updatedAtColumn<Project>(sortOrderOf('updated_at')),

@@ -8,8 +8,9 @@ import { useAppToast } from '@/components/common/useAppToast';
 import { TableSkeleton } from '@/components/common/TableSkeleton';
 import { EmptyState } from '@/components/common/EmptyState';
 import { ProgramFormDrawer } from '@/components/programs/ProgramFormDrawer';
-import { ProgramManagersPanel } from '@/components/programs/ProgramManagersPanel';
+import { EntityManagersPanel } from '@/components/common/EntityManagersPanel';
 import { ProgramStartupsPanel } from '@/components/programs/ProgramStartupsPanel';
+import { ProgramPartnersPanel } from '@/components/programs/ProgramPartnersPanel';
 import { ProgramCalendarBlock } from '@/components/programs/ProgramCalendarBlock';
 import { EntityFilesBlock } from '@/components/common/EntityFilesBlock';
 import { formatDate, formatKRW } from '@/lib/formatters';
@@ -94,7 +95,7 @@ export function ProgramDetailView() {
           <Descriptions.Item label="진행 기간">
             {formatDate(program.startDate)} ~ {formatDate(program.endDate)}
           </Descriptions.Item>
-          <Descriptions.Item label="책임자">{program.authorName || '관리자'}</Descriptions.Item>
+          <Descriptions.Item label="작성자">{program.authorName || '관리자'}</Descriptions.Item>
           <Descriptions.Item label="등록일">{formatDate(program.createdAt)}</Descriptions.Item>
           <Descriptions.Item label="수정일">{formatDate(program.updatedAt)}</Descriptions.Item>
         </Descriptions>
@@ -107,11 +108,16 @@ export function ProgramDetailView() {
 
       {/* 카드 섹션: 기본 수정에서 비활성화한 섹션은 숨긴다 (program.sections) */}
 
-      {/* 운영 심사역 매핑 (다대다 + 역할) */}
-      {program.sections.managers ? <ProgramManagersPanel programId={program.id} /> : null}
+      {/* 담당자 매핑 (다대다 + 운영 역할) — 작성자(created_by)는 운영총괄로 자동 편입된 필수 담당자 */}
+      {program.sections.managers ? (
+        <EntityManagersPanel kind="program" entityId={program.id} authorId={program.createdById} />
+      ) : null}
 
       {/* 참여 스타트업 매핑 (보육 상태) */}
       {program.sections.startups ? <ProgramStartupsPanel programId={program.id} /> : null}
+
+      {/* 참여 협력사(기관) 매핑 (program_partners) */}
+      {program.sections.partners ? <ProgramPartnersPanel programId={program.id} /> : null}
 
       {/* 마일스톤 캘린더 (program_events → 대시보드 자동 동기화) */}
       {program.sections.calendar ? <ProgramCalendarBlock programId={program.id} /> : null}

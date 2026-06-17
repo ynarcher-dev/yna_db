@@ -18,6 +18,8 @@ export interface RelatedItem {
 /**
  * 역방향 연계 카드 (양방향 연결 공통 표시). 상대 레코드 목록을 링크로 렌더한다.
  * 데이터 출처별 매핑은 각 상세 화면이 담당하고, 본 컴포넌트는 표현만 책임진다.
+ * 역방향(보여지는 쪽)임을 시각적으로 구분하기 위해 섹션명 옆 (연동) 라벨을 포인트색으로 표시한다.
+ * (테두리는 정방향 카드와 동일한 회색 yna-border 로 통일.)
  */
 export function RelatedListCard({
   title,
@@ -32,7 +34,10 @@ export function RelatedListCard({
 }) {
   return (
     <div className="rounded-lg border border-yna-border bg-white p-6">
-      <h2 className="mb-3 text-base font-semibold text-yna-main">{title}</h2>
+      <h2 className="mb-3 text-base font-semibold text-yna-main">
+        {title}
+        <span className="ml-1 text-xs font-normal text-yna-point">(연동)</span>
+      </h2>
       {isLoading ? (
         <Spin size="small" />
       ) : items.length === 0 ? (

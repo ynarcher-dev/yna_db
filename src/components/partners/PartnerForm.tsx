@@ -86,11 +86,11 @@ export function PartnerForm({
       </div>
 
       <div>
-        <label className="mb-1 block text-sm text-yna-main">담당자 *</label>
+        <label className="mb-1 block text-sm text-yna-main">담당자(해당 기업) *</label>
         <Controller
           name="contactPerson"
           control={control}
-          render={({ field }) => <Input {...field} placeholder="담당자 이름" />}
+          render={({ field }) => <Input {...field} placeholder="해당 기업 측 연락 담당자 이름" />}
         />
         <FieldError message={errors.contactPerson?.message} />
       </div>

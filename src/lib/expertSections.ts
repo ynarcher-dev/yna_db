@@ -7,11 +7,11 @@ import { defineSections, type SectionVisibility } from './sectionVisibility';
  * 키 순서 = 상세 화면 렌더 순서.
  */
 export const EXPERT_SECTIONS = defineSections(
-  ['mentoringRating', 'biography', 'intro', 'attachments'] as const,
+  ['biography', 'intro', 'mentoringRating', 'attachments'] as const,
   {
-    mentoringRating: '멘토링 만족도',
     biography: '약력',
     intro: '소개',
+    mentoringRating: '멘토링 만족도',
     attachments: '첨부파일',
   },
 );

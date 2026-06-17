@@ -120,10 +120,12 @@ export function useStartupMutations() {
   const qc = useQueryClient();
   const invalidate = () => qc.invalidateQueries({ queryKey: [TABLE] });
 
+  // 생성 후 새 id 를 반환한다(.select) — 역방향 화면에서 "생성과 동시에 매핑"에 쓰인다.
   const create = useMutation({
-    mutationFn: async (input: StartupInput) => {
-      const { error } = await supabase.from(TABLE).insert(toRow(input));
+    mutationFn: async (input: StartupInput): Promise<{ id: string }> => {
+      const { data, error } = await supabase.from(TABLE).insert(toRow(input)).select('id').single();
       if (error) throw error;
+      return data as { id: string };
     },
     onSuccess: invalidate,
   });

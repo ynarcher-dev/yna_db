@@ -17,7 +17,7 @@ import {
   updatedAtColumn,
   actionsColumn,
 } from '@/lib/tableColumns';
-import { formatDate, formatKRWShort } from '@/lib/formatters';
+import { programColumns } from '@/lib/listColumns';
 import type { Program } from '@/types/program';
 
 /**
@@ -74,45 +74,7 @@ export function ProgramsListView() {
 
   const columns: TableProps<Program>['columns'] = [
     numberColumn<Program>(params.page, params.pageSize, total),
-    {
-      title: '프로그램명',
-      key: 'name',
-      width: 220,
-      sorter: true,
-      sortOrder: sortOrderOf('name'),
-      ellipsis: true,
-      render: (_, r) => <span className="font-medium text-yna-main">{r.name}</span>,
-    },
-    {
-      title: '기수',
-      key: 'generation',
-      width: 70,
-      align: 'center',
-      sorter: true,
-      sortOrder: sortOrderOf('generation'),
-      render: (_, r) => `${r.generation}기`,
-    },
-    {
-      title: '예산',
-      key: 'budget',
-      width: 110,
-      align: 'right',
-      render: (_, r) => formatKRWShort(r.budget),
-    },
-    {
-      title: '기간',
-      key: 'period',
-      width: 180,
-      ellipsis: true,
-      render: (_, r) => `${formatDate(r.startDate)} ~ ${formatDate(r.endDate)}`,
-    },
-    {
-      title: '운영 심사역',
-      key: 'managers',
-      width: 140,
-      ellipsis: { showTitle: true },
-      render: (_, r) => (r.managerNames.length ? r.managerNames.join(', ') : '-'),
-    },
+    ...programColumns({ sortOrderOf }),
     authorColumn<Program>(),
     createdAtColumn<Program>(sortOrderOf('created_at')),
     updatedAtColumn<Program>(sortOrderOf('updated_at')),

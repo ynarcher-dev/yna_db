@@ -6,7 +6,6 @@ import { EXPERT_TYPE_OPTIONS } from '@/lib/labels';
 import { EXPERT_SECTIONS, DEFAULT_EXPERT_SECTIONS } from '@/lib/expertSections';
 import { ProfileImageUploader } from '@/components/common/ProfileImageUploader';
 import { SectionVisibilityField } from '@/components/common/SectionVisibilityField';
-import { BiographyEditor } from '@/components/common/BiographyEditor';
 import { EMPTY_BIOGRAPHY } from '@/types/biography';
 
 /**
@@ -172,26 +171,7 @@ export function ExpertForm({
         <span className="text-sm text-yna-main">매칭 가능</span>
       </div>
 
-      <div>
-        <label className="mb-1 block text-sm text-yna-main">소개</label>
-        <Controller
-          name="greeting"
-          control={control}
-          render={({ field }) => (
-            <Input.TextArea
-              {...field}
-              rows={3}
-              placeholder="홈페이지 등에 노출될 소개글을 입력하세요."
-            />
-          )}
-        />
-        <FieldError message={errors.greeting?.message} />
-      </div>
-
-      <div>
-        <label className="mb-2 block text-sm font-medium text-yna-main">약력</label>
-        <BiographyEditor control={control} />
-      </div>
+      {/* 소개·약력은 기본 수정에서 분리 — 상세 화면의 각 카드 '수정'에서 편집한다. */}
 
       <Controller
         name="sections"

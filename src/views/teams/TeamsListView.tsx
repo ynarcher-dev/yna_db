@@ -1,15 +1,16 @@
 import { useRef, useState } from 'react';
-import { Table, Input, Button, Alert } from 'antd';
+import { Table, Input, Select, Button, Alert, Tag } from 'antd';
 import type { TableProps } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { HiOutlinePlus } from 'react-icons/hi';
 import { useListParams } from '@/hooks/useListParams';
-import { useDepartmentsList, useDepartmentMutations } from '@/hooks/useDepartments';
+import { useTeamsList, useTeamMutations } from '@/hooks/useTeams';
 import { useAuthStore } from '@/stores/authStore';
 import { useAppToast } from '@/components/common/useAppToast';
 import { EmptyState } from '@/components/common/EmptyState';
 import { ListPagination } from '@/components/common/listPagination';
-import { DepartmentFormDrawer } from '@/components/departments/DepartmentFormDrawer';
+import { TeamFormDrawer } from '@/components/teams/TeamFormDrawer';
+import { COMPANY_OPTIONS } from '@/lib/labels';
 import { formatDate } from '@/lib/formatters';
 import {
   numberColumn,
@@ -18,46 +19,46 @@ import {
   updatedAtColumn,
   actionsColumn,
 } from '@/lib/tableColumns';
-import type { Department } from '@/types/department';
+import type { Team } from '@/types/team';
 
 /**
- * 소속(부서) 목록 (11_departments.md, 17_conventions.md 2장).
- * 검색(부서명·설명)·정렬·페이지네이션을 URL 상태로 직렬화한다.
- * 등록/수정/삭제는 Admin 전용(11.4) — 비Admin 에게는 작성 액션을 노출하지 않는다.
+ * 소속 관리 목록 = 팀(단위) 목록. 한 행이 곧 하나의 '부서'(팀).
+ * 컬럼: No.·회사·그룹명·팀명·운영기간·작성자·등록일·수정일·관리.
+ * 등록/수정/삭제는 Admin 전용 — 비Admin 에게는 작성 액션을 노출하지 않는다.
  */
-export function DepartmentsListView() {
+export function TeamsListView() {
   const navigate = useNavigate();
   const toast = useAppToast();
-  const params = useListParams();
+  const params = useListParams({ filterKeys: ['company'] });
   const isAdmin = useAuthStore((s) => s.role) === 'admin';
 
   const [searchInput, setSearchInput] = useState(params.search);
   const searchTimer = useRef<ReturnType<typeof setTimeout>>();
   const [createOpen, setCreateOpen] = useState(false);
 
-  const { departments, total, isLoading, isFetching, isError, refetch } = useDepartmentsList({
+  const { teams, total, isLoading, isFetching, isError, refetch } = useTeamsList({
     search: params.search,
+    company: params.filters.company,
     sortBy: params.sortBy,
     sortOrder: params.sortOrder,
     page: params.page,
     pageSize: params.pageSize,
   });
-  const { remove } = useDepartmentMutations();
+  const { remove } = useTeamMutations();
 
-  // 검색: 300ms 디바운스 후 URL 반영 (17_conventions.md 2장)
   const onSearchChange = (value: string) => {
     setSearchInput(value);
     clearTimeout(searchTimer.current);
     searchTimer.current = setTimeout(() => params.setSearch(value), 300);
   };
 
-  const handleDelete = (department: Department) => {
+  const handleDelete = (team: Team) => {
     toast.confirm(
-      '부서 삭제',
-      `'${department.name}'을(를) 삭제하시겠습니까? 목록에서 비활성 처리됩니다.`,
+      '팀 삭제',
+      `'${team.name}'을(를) 삭제하시겠습니까? 목록에서 비활성 처리됩니다.`,
       async () => {
         try {
-          await remove.mutateAsync(department.id);
+          await remove.mutateAsync(team.id);
           toast.success('삭제되었습니다.');
         } catch (err) {
           toast.error('삭제에 실패했습니다.', err);
@@ -69,38 +70,46 @@ export function DepartmentsListView() {
   const sortOrderOf = (key: string) =>
     params.sortBy === key ? (params.sortOrder === 'asc' ? 'ascend' : 'descend') : null;
 
-  const columns: TableProps<Department>['columns'] = [
-    numberColumn<Department>(params.page, params.pageSize, total),
+  const periodCell = (t: Team) => {
+    if (!t.operatingStart && !t.operatingEnd) return '-';
+    const start = t.operatingStart ? formatDate(t.operatingStart) : '-';
+    return t.operatingEnd ? (
+      `${start} ~ ${formatDate(t.operatingEnd)}`
+    ) : (
+      <span>
+        {start} ~ <Tag color="green">운영중</Tag>
+      </span>
+    );
+  };
+
+  const columns: TableProps<Team>['columns'] = [
+    numberColumn<Team>(params.page, params.pageSize, total),
+    { title: '회사', key: 'company', width: 150, ellipsis: true, render: (_, r) => r.company },
     {
-      title: '부서명',
+      title: '그룹명',
+      key: 'group',
+      width: 160,
+      ellipsis: true,
+      render: (_, r) => r.groupName || '-',
+    },
+    {
+      title: '팀명',
       key: 'name',
-      width: 220,
+      width: 140,
       sorter: true,
       sortOrder: sortOrderOf('name'),
       ellipsis: true,
-      render: (_, r) => <span className="font-medium text-yna-main">{r.name}</span>,
+      render: (_, r) =>
+        r.name ? <span className="font-medium text-yna-main">{r.name}</span> : '-',
     },
-    {
-      title: '설립일',
-      key: 'established_at',
-      width: 120,
-      align: 'center',
-      render: (_, r) => (r.establishedAt ? formatDate(r.establishedAt) : '-'),
-    },
-    {
-      title: '설명',
-      key: 'description',
-      ellipsis: true,
-      render: (_, r) => r.description || '-',
-    },
-    authorColumn<Department>(),
-    createdAtColumn<Department>(sortOrderOf('created_at')),
-    updatedAtColumn<Department>(sortOrderOf('updated_at')),
-    actionsColumn<Department>({ isAdmin, onDelete: handleDelete }),
+    { title: '운영기간', key: 'period', width: 200, render: (_, r) => periodCell(r) },
+    authorColumn<Team>(),
+    createdAtColumn<Team>(sortOrderOf('created_at')),
+    updatedAtColumn<Team>(sortOrderOf('updated_at')),
+    actionsColumn<Team>({ isAdmin, onDelete: handleDelete }),
   ];
 
-  // 정렬만 Table onChange 로 처리 (페이지는 외부 ListPagination 이 담당)
-  const onTableChange: TableProps<Department>['onChange'] = (_pagination, _filters, sorter) => {
+  const onTableChange: TableProps<Team>['onChange'] = (_pagination, _filters, sorter) => {
     const single = Array.isArray(sorter) ? sorter[0] : sorter;
     if (single?.order) {
       params.setSort(String(single.columnKey), single.order === 'ascend' ? 'asc' : 'desc');
@@ -113,7 +122,7 @@ export function DepartmentsListView() {
         <h1 className="text-2xl font-bold tracking-tight text-yna-main">소속 관리</h1>
         {isAdmin ? (
           <Button type="primary" icon={<HiOutlinePlus />} onClick={() => setCreateOpen(true)}>
-            부서 등록
+            팀 등록
           </Button>
         ) : null}
       </div>
@@ -121,10 +130,18 @@ export function DepartmentsListView() {
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <Input.Search
           allowClear
-          placeholder="부서명·설명 검색"
+          placeholder="팀명 검색"
           value={searchInput}
           onChange={(e) => onSearchChange(e.target.value)}
           className="max-w-xs"
+        />
+        <Select
+          allowClear
+          placeholder="회사 전체"
+          options={COMPANY_OPTIONS}
+          value={params.filters.company ?? undefined}
+          onChange={(value) => params.setFilter('company', value)}
+          className="w-48"
         />
       </div>
 
@@ -132,7 +149,7 @@ export function DepartmentsListView() {
         <Alert
           type="error"
           showIcon
-          message="부서 목록을 불러오지 못했습니다."
+          message="팀 목록을 불러오지 못했습니다."
           action={
             <Button size="small" onClick={() => void refetch()}>
               다시 시도
@@ -141,10 +158,10 @@ export function DepartmentsListView() {
         />
       ) : (
         <>
-          <Table<Department>
+          <Table<Team>
             rowKey="id"
             columns={columns}
-            dataSource={departments}
+            dataSource={teams}
             loading={isLoading || isFetching}
             onChange={onTableChange}
             pagination={false}
@@ -155,11 +172,11 @@ export function DepartmentsListView() {
             locale={{
               emptyText: (
                 <EmptyState
-                  message="등록된 부서가 없습니다."
+                  message="등록된 팀이 없습니다."
                   action={
                     isAdmin ? (
                       <Button type="primary" onClick={() => setCreateOpen(true)}>
-                        부서 등록
+                        팀 등록
                       </Button>
                     ) : undefined
                   }
@@ -176,7 +193,7 @@ export function DepartmentsListView() {
         </>
       )}
 
-      <DepartmentFormDrawer open={createOpen} onClose={() => setCreateOpen(false)} />
+      <TeamFormDrawer open={createOpen} onClose={() => setCreateOpen(false)} />
     </div>
   );
 }

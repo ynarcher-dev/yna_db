@@ -31,7 +31,7 @@ export function ExpertDetailView() {
 
   const { data: expert, isLoading, isError, refetch } = useExpert(id);
   const { data: rating } = useExpertRating(id);
-  const { remove } = useExpertMutations();
+  const { remove, updateBiography, updateIntro } = useExpertMutations();
 
   if (isLoading) return <TableSkeleton rows={4} />;
   if (isError || !expert) {
@@ -97,13 +97,54 @@ export function ExpertDetailView() {
           <Descriptions.Item label="관심 분야" span={2}>
             <SpecialtyTags specialties={expert.specialties} />
           </Descriptions.Item>
-          <Descriptions.Item label="책임자">{expert.authorName || '관리자'}</Descriptions.Item>
+          <Descriptions.Item label="작성자">{expert.authorName || '관리자'}</Descriptions.Item>
           <Descriptions.Item label="등록일">{formatDate(expert.createdAt)}</Descriptions.Item>
           <Descriptions.Item label="수정일">{formatDate(expert.updatedAt)}</Descriptions.Item>
         </Descriptions>
       </PersonProfileCard>
 
-      {/* 멘토링 만족도 통계 (기본 수정에서 비활성화하면 숨김) */}
+      {/* 약력 + 소개 — 카드 자체의 '수정'에서 부분 저장 (기본 수정과 분리). 심사역과 동일 순서. */}
+      {expert.sections.biography ? (
+        <BiographyView
+          biography={expert.biography}
+          editable
+          saving={updateBiography.isPending}
+          onSave={(biography) =>
+            updateBiography.mutate(
+              { id: expert.id, biography },
+              {
+                onSuccess: () => {
+                  toast.success('약력이 저장되었습니다.');
+                  void refetch();
+                },
+                onError: (e) => toast.error('저장에 실패했습니다.', e),
+              },
+            )
+          }
+        />
+      ) : null}
+      {expert.sections.intro ? (
+        <ProfileTextBlock
+          title="소개"
+          text={expert.greeting}
+          editable
+          saving={updateIntro.isPending}
+          onSave={(greeting) =>
+            updateIntro.mutate(
+              { id: expert.id, greeting },
+              {
+                onSuccess: () => {
+                  toast.success('소개가 저장되었습니다.');
+                  void refetch();
+                },
+                onError: (e) => toast.error('저장에 실패했습니다.', e),
+              },
+            )
+          }
+        />
+      ) : null}
+
+      {/* 멘토링 만족도 통계 — 약력·소개 아래 (기본 수정에서 비활성화하면 숨김) */}
       {expert.sections.mentoringRating ? (
         <div className="rounded-lg border border-yna-border bg-white p-6">
           <h2 className="mb-4 text-lg font-semibold text-yna-main">멘토링 만족도</h2>
@@ -123,15 +164,6 @@ export function ExpertDetailView() {
         </div>
       ) : null}
 
-      {/* 약력 (세로 표시) + 소개 — 심사역과 공유하는 블록 */}
-      {expert.sections.biography ? <BiographyView biography={expert.biography} /> : null}
-      {expert.sections.intro ? <ProfileTextBlock title="소개" text={expert.greeting} /> : null}
-
-      {/* 첨부파일 (전 도메인 공통 카드) */}
-      {expert.sections.attachments ? (
-        <EntityFilesBlock entityType="expert" entityId={expert.id} />
-      ) : null}
-
       {/* 연계 블록 (Phase 4) */}
       <Alert
         type="info"
@@ -139,6 +171,11 @@ export function ExpertDetailView() {
         message="스타트업 자문 매칭 히스토리"
         description="자문 일자·대상 스타트업·담당 심사역·피드백 이력 연동은 프로젝트/스타트업 도메인(Phase 4) 개발 시 연결됩니다."
       />
+
+      {/* 첨부파일 (전 도메인 공통 카드) — 항상 최하단 */}
+      {expert.sections.attachments ? (
+        <EntityFilesBlock entityType="expert" entityId={expert.id} />
+      ) : null}
 
       <ExpertFormDrawer
         open={editOpen}

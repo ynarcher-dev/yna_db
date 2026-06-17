@@ -101,6 +101,13 @@ export function FundsListView() {
       ellipsis: true,
       render: (_, r) => r.investingPeriod,
     },
+    {
+      title: '담당자',
+      key: 'managers',
+      width: 140,
+      ellipsis: { showTitle: true },
+      render: (_, r) => (r.managerNames.length ? r.managerNames.join(', ') : '-'),
+    },
     authorColumn<Fund>(),
     createdAtColumn<Fund>(sortOrderOf('created_at')),
     updatedAtColumn<Fund>(sortOrderOf('updated_at')),

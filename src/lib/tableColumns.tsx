@@ -27,9 +27,9 @@ export const numberColumn = <T,>(page: number, pageSize: number, total: number):
   render: (_v, _r, index) => total - ((page - 1) * pageSize + index),
 });
 
-/** 책임자 (created_by FK 임베드 이름 = 게시글 등록자). 값이 없으면 임시로 '관리자' 표시. */
+/** 작성자 (created_by FK 임베드 이름 = 게시글 등록자). 값이 없으면 임시로 '관리자' 표시. */
 export const authorColumn = <T extends ListRecord>(): Column<T> => ({
-  title: '책임자',
+  title: '작성자',
   key: 'created_by',
   width: 100,
   align: 'center',

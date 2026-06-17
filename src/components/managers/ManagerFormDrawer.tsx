@@ -1,7 +1,7 @@
 import { Drawer } from 'antd';
 import { ManagerForm } from './ManagerForm';
 import { useManagerMutations } from '@/hooks/useManagers';
-import { useDepartmentOptions } from '@/hooks/useDepartments';
+import { useTeamOptions } from '@/hooks/useTeams';
 import { useAppToast } from '@/components/common/useAppToast';
 import { EMPTY_BIOGRAPHY } from '@/types/biography';
 import type { Manager } from '@/types/manager';
@@ -24,7 +24,7 @@ function toInput(m: Manager): ManagerInput {
   return {
     name: m.name,
     position: m.position,
-    departmentId: m.departmentId,
+    teamId: m.teamId,
     phone: m.phone,
     specialties: m.specialties,
     profileImageUrl: m.profileImageUrl,
@@ -36,7 +36,7 @@ function toInput(m: Manager): ManagerInput {
 
 export function ManagerFormDrawer({ open, manager, mode, onClose, onSaved }: ManagerFormDrawerProps) {
   const { updateAsAdmin, updateMyProfile } = useManagerMutations();
-  const { data: departmentOptions = [] } = useDepartmentOptions();
+  const { data: teamOptions = [] } = useTeamOptions();
   const toast = useAppToast();
   const submitting = updateAsAdmin.isPending || updateMyProfile.isPending;
 
@@ -68,7 +68,7 @@ export function ManagerFormDrawer({ open, manager, mode, onClose, onSaved }: Man
           mode={mode}
           managerId={manager.id}
           defaultValues={toInput(manager)}
-          departmentOptions={departmentOptions}
+          teamOptions={teamOptions}
           submitting={submitting}
           onSubmit={handleSubmit}
           onCancel={onClose}

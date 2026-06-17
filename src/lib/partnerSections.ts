@@ -5,10 +5,15 @@ import { defineSections, type SectionVisibility } from './sectionVisibility';
  * 프로필 카드(기업/기관명·연락처)는 핵심 식별 정보라 토글 대상에서 제외한다.
  * 'Phase 4 공동 참여 프로젝트' Alert 는 플레이스홀더라 토글 대상이 아니다.
  */
-export const PARTNER_SECTIONS = defineSections(['interactionLog', 'attachments'] as const, {
-  interactionLog: '교류 협력 이력',
-  attachments: '첨부파일',
-});
+export const PARTNER_SECTIONS = defineSections(
+  ['interactionLog', 'projects', 'programs', 'attachments'] as const,
+  {
+    interactionLog: '교류 협력 이력',
+    projects: '참여 프로젝트 (연동)',
+    programs: '참여 프로그램 (연동)',
+    attachments: '첨부파일',
+  },
+);
 
 export type PartnerSectionKey = (typeof PARTNER_SECTIONS.keys)[number];
 export type PartnerSections = SectionVisibility<PartnerSectionKey>;

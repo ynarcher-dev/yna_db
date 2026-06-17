@@ -11,7 +11,8 @@ import type { FundInput, LpCompositionFormInput } from '@/schemas/fund';
  * 변이는 raw 에러를 전파해 호출부(useAppToast)가 피드백하도록 한다.
  */
 const TABLE = 'funds';
-const SELECT_WITH_AUTHOR = '*, author:managers!funds_created_by_fkey(name)';
+const SELECT_WITH_AUTHOR =
+  '*, author:managers!funds_created_by_fkey(name), fund_managers(manager:managers(name))';
 
 /** id+name 옵션 목록 (Select 용, 예: 스타트업 자사 투자 재원 펀드). 미삭제 펀드 전체. */
 export function useFundOptions() {

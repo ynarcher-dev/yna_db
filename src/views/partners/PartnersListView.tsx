@@ -9,7 +9,6 @@ import { useAuthStore } from '@/stores/authStore';
 import { useAppToast } from '@/components/common/useAppToast';
 import { EmptyState } from '@/components/common/EmptyState';
 import { ListPagination } from '@/components/common/listPagination';
-import { PartnerTypeTag } from '@/components/partners/PartnerTypeTag';
 import { PartnerFormDrawer } from '@/components/partners/PartnerFormDrawer';
 import { PARTNER_TYPE_OPTIONS } from '@/lib/labels';
 import {
@@ -19,6 +18,7 @@ import {
   updatedAtColumn,
   actionsColumn,
 } from '@/lib/tableColumns';
+import { partnerColumns } from '@/lib/listColumns';
 import type { Partner } from '@/types/partner';
 
 /**
@@ -73,23 +73,7 @@ export function PartnersListView() {
 
   const columns: TableProps<Partner>['columns'] = [
     numberColumn<Partner>(params.page, params.pageSize, total),
-    {
-      title: '기업/기관명',
-      key: 'name',
-      sorter: true,
-      sortOrder: sortOrderOf('name'),
-      ellipsis: true,
-      render: (_, r) => <span className="font-medium text-yna-main">{r.name}</span>,
-    },
-    { title: '부서명', key: 'department', ellipsis: true, render: (_, r) => r.department || '-' },
-    {
-      title: '유형',
-      key: 'partner_type',
-      width: 130,
-      render: (_, r) => <PartnerTypeTag type={r.partnerType} />,
-    },
-    { title: '담당자', key: 'contact_person', ellipsis: true, render: (_, r) => r.contactPerson },
-    { title: '이메일', key: 'email', ellipsis: true, render: (_, r) => r.email || '-' },
+    ...partnerColumns({ sortOrderOf }),
     authorColumn<Partner>(),
     createdAtColumn<Partner>(sortOrderOf('created_at')),
     updatedAtColumn<Partner>(sortOrderOf('updated_at')),

@@ -7,6 +7,7 @@ import { defineSections, type SectionVisibility } from './sectionVisibility';
  */
 export const STARTUP_SECTIONS = defineSections(
   [
+    'managers',
     'businessTeam',
     'metrics',
     'shareholders',
@@ -14,9 +15,12 @@ export const STARTUP_SECTIONS = defineSections(
     'newsroom',
     'followups',
     'memo',
+    'programs',
+    'projects',
     'attachments',
   ] as const,
   {
+    managers: '담당 심사역 (연동)',
     businessTeam: '비즈니스 & 팀 역량',
     metrics: '성장 지표',
     shareholders: '주주 구성',
@@ -24,6 +28,8 @@ export const STARTUP_SECTIONS = defineSections(
     newsroom: '뉴스룸',
     followups: '후속 보고',
     memo: '메모 · 회의록',
+    programs: '참여 프로그램 (연동)',
+    projects: '참여 프로젝트 (연동)',
     attachments: '첨부파일',
   },
 );

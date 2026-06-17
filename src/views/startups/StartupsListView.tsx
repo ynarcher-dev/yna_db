@@ -10,8 +10,6 @@ import { useAuthStore } from '@/stores/authStore';
 import { useAppToast } from '@/components/common/useAppToast';
 import { EmptyState } from '@/components/common/EmptyState';
 import { ListPagination } from '@/components/common/listPagination';
-import { StartupStageTag } from '@/components/startups/StartupStageTag';
-import { StartupStatusTag } from '@/components/startups/StartupStatusTag';
 import { StartupFormDrawer } from '@/components/startups/StartupFormDrawer';
 import { INVESTMENT_STAGE_OPTIONS, MANAGEMENT_STATUS_OPTIONS } from '@/lib/labels';
 import {
@@ -21,6 +19,7 @@ import {
   updatedAtColumn,
   actionsColumn,
 } from '@/lib/tableColumns';
+import { startupColumns } from '@/lib/listColumns';
 import type { Startup } from '@/types/startup';
 
 /**
@@ -80,53 +79,7 @@ export function StartupsListView() {
 
   const columns: TableProps<Startup>['columns'] = [
     numberColumn<Startup>(params.page, params.pageSize, total),
-    {
-      title: '기업명',
-      key: 'name',
-      width: 180,
-      sorter: true,
-      sortOrder: sortOrderOf('name'),
-      ellipsis: true,
-      render: (_, r) => (
-        <span className="flex items-center gap-2">
-          <span
-            className="inline-block h-3 w-3 shrink-0 rounded-full"
-            style={{ backgroundColor: r.brandColor }}
-          />
-          <span className="font-medium text-yna-main">{r.name}</span>
-        </span>
-      ),
-    },
-    { title: '대표자', key: 'ceo_name', width: 120, ellipsis: true, render: (_, r) => r.ceoName },
-    {
-      title: '투자 단계',
-      key: 'investment_stage',
-      width: 130,
-      render: (_, r) => <StartupStageTag stage={r.investmentStage} />,
-    },
-    {
-      title: '관리 현황',
-      key: 'management_status',
-      width: 120,
-      render: (_, r) => (
-        <StartupStatusTag status={r.managementStatus} etc={r.managementStatusEtc} />
-      ),
-    },
-    {
-      title: '담당 심사역',
-      key: 'manager',
-      width: 140,
-      ellipsis: { showTitle: true },
-      render: (_, r) => (r.managerNames.length ? r.managerNames.join(', ') : '-'),
-    },
-    {
-      title: '기업 설명',
-      key: 'description',
-      width: 360,
-      // 길면 한 줄로 잘라 말줄임(…) 처리. 마우스 오버 시 전체 텍스트 툴팁 노출.
-      ellipsis: { showTitle: true },
-      render: (_, r) => r.description || '-',
-    },
+    ...startupColumns({ sortOrderOf }),
     authorColumn<Startup>(),
     createdAtColumn<Startup>(sortOrderOf('created_at')),
     updatedAtColumn<Startup>(sortOrderOf('updated_at')),

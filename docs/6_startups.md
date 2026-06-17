@@ -26,10 +26,11 @@
 
 ### 2) 타 페이지 연계성 (Connectivity & Relations)
 *   **담당 심사역 연계**: **다대다** `startup_managers` 조인(`managers.id`) -> 한 스타트업에 담당 심사역 여러 명. 책임자(`created_by`)와 별개. (초기 단수 `manager_id` 컬럼은 잔존하나 앱 미사용 — 2026-06-17 다대다 확정·전환, 6.5 참조.)
-*   **성장 지표 연계**: `startup_metrics.startup_id` -> 분기별 기업가치, 매출액, 고용 인원 시계열 데이터 조회
-*   **후속 보고 연계**: `startup_followups.startup_id` -> 보고 대상 기간(`reporting_period`), 제출 기한(`due_date`), 제출 현황 및 마일스톤 조회
-*   **참여 프로그램 연계**: `program_startups` 조인 테이블 -> 스타트업이 참여 중인 배치 사업 조회
-*   **프로젝트 연계**: `project_startups` 조인 테이블 -> 스타트업이 매핑된 M&A / OI 프로젝트 조회
+*   **성장 지표 연계**: `startup_metrics.startup_id` -> 연도별 재무·매출·고용·투자현황 시계열. 투자현황의 **자사(internal) 투자는 재원 펀드(`startup_metrics.fund_id`)와 연동**(0042) — 표에서 펀드 상세로 링크. 연동 행이 있으면 **투자현황 하위 카드만 (연동)으로 강조**(테두리 `yna-point/40`·헤더 라벨, 조건부 — PATTERNS 18.1). 형제 카드(재무·매출·고용)는 자사 데이터라 강조하지 않음.
+*   **후속 보고 연계**: `startup_followups.startup_id` -> 보고 유형·첨부파일·제출 현황 조회
+*   **참여 프로그램 연계**: `program_startups` 조인 -> 참여 배치 사업(+보육 상태). **상세 역방향 패널 '참여 프로그램 (연동)'으로 노출** — 프로그램 목록과 동일한 표 형태(메타 5컬럼 제외) + 보육상태·연동해제 컬럼(양방향, PATTERNS 18·18.1).
+*   **프로젝트 연계**: `project_startups` 조인 -> 매핑된 M&A/신사업 프로젝트. **역방향 패널 '참여 프로젝트 (연동)'**(프로젝트 목록과 동일한 표 형태 + 연동해제).
+*   **투자받은 펀드 연계**: `fund_investments` 조인 -> 이 스타트업에 집행한 펀드·출자액·지분율. **역방향 패널 '투자받은 펀드'.**
 
 ### 🏷️ TypeScript Interface: `Startup`
 ```typescript

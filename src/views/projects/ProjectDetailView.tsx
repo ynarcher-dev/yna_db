@@ -95,7 +95,7 @@ export function ProjectDetailView() {
           <Descriptions.Item label="예상 종료일">
             {project.endDate ? formatDate(project.endDate) : '-'}
           </Descriptions.Item>
-          <Descriptions.Item label="책임자">{project.authorName || '관리자'}</Descriptions.Item>
+          <Descriptions.Item label="작성자">{project.authorName || '관리자'}</Descriptions.Item>
           <Descriptions.Item label="등록일">{formatDate(project.createdAt)}</Descriptions.Item>
           <Descriptions.Item label="수정일">{formatDate(project.updatedAt)}</Descriptions.Item>
         </Descriptions>
@@ -108,8 +108,10 @@ export function ProjectDetailView() {
 
       {/* 카드 섹션: 기본 수정에서 비활성화한 섹션은 숨긴다 (project.sections) */}
 
-      {/* 담당자(다대다) 배정 패널 */}
-      {project.sections.managers ? <EntityManagersPanel kind="project" entityId={project.id} /> : null}
+      {/* 담당자(다대다) 배정 패널 — 작성자(created_by)는 자동 편입된 필수 담당자 */}
+      {project.sections.managers ? (
+        <EntityManagersPanel kind="project" entityId={project.id} authorId={project.createdById} />
+      ) : null}
 
       {/* 매칭 스타트업·협력사 매핑 패널 (좌우 2열) */}
       {project.sections.startups || project.sections.partners ? (

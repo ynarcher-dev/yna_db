@@ -52,6 +52,8 @@ export function MetricsBlock({ startup, onSaved }: { startup: Startup; onSaved?:
   }));
   const tableData = [...last5].reverse(); // 표는 최신 연도 먼저
   const lastUpdated = metrics.reduce((acc, m) => (m.updatedAt > acc ? m.updatedAt : acc), '');
+  // 표시 중인 연도 중 자사 투자=재원 펀드 연동 행이 하나라도 있으면 투자현황 카드를 '연동'으로 표시.
+  const hasLinkedFund = last5.some((m) => m.investorType === 'internal' && Boolean(m.fundId));
 
   const handleAdd = (group: MetricGroup, v: StartupMetricInput) => {
     const payloadByGroup: Record<MetricGroup, Record<string, unknown>> = {
@@ -126,10 +128,14 @@ export function MetricsBlock({ startup, onSaved }: { startup: Startup; onSaved?:
     render: (_: unknown, r: StartupMetric) => wonValue(r[key] as number, signed),
   });
 
-  const card = (title: string, group: MetricGroup, body: ReactNode) => (
+  // linked=true 면 역방향 연동(자사 투자=재원 펀드)이 있는 카드 → 헤더 (연동) 라벨(포인트색). 테두리는 회색 통일.
+  const card = (title: string, group: MetricGroup, body: ReactNode, linked = false) => (
     <section className="rounded-md border border-yna-border p-4">
       <div className="mb-2 flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-yna-main">{title}</h3>
+        <h3 className="text-sm font-semibold text-yna-main">
+          {title}
+          {linked ? <span className="ml-1 text-xs font-normal text-yna-point">(연동)</span> : null}
+        </h3>
         <Button size="small" onClick={() => setOpenGroup(group)}>
           수정
         </Button>
@@ -260,7 +266,7 @@ export function MetricsBlock({ startup, onSaved }: { startup: Startup; onSaved?:
             ),
           )}
 
-          {/* 4. 투자 현황 (투자유치액 강조 + 표) */}
+          {/* 4. 투자 현황 (투자유치액 강조 + 표). 자사 투자=재원 펀드 연동 시 카드를 '연동'으로 강조. */}
           {card(
             '투자 현황 (최신 5개년)',
             'investment',
@@ -300,6 +306,7 @@ export function MetricsBlock({ startup, onSaved }: { startup: Startup; onSaved?:
                       render: (_: unknown, r: StartupMetric) => {
                         // 자사 투자 + 재원 펀드 연결 시 펀드명을 펀드 상세 링크로 표시.
                         if (r.investorType === 'internal' && r.fundId) {
+                          // 자사 투자=재원 펀드와 연동된 행 → 펀드 상세 링크. (연동) 표시는 카드 헤더에서.
                           return (
                             <span className="flex items-center justify-end gap-1">
                               <Tag color={INVESTOR_TYPE_COLOR.internal}>
@@ -332,6 +339,7 @@ export function MetricsBlock({ startup, onSaved }: { startup: Startup; onSaved?:
                 />
               </>
             ),
+            hasLinkedFund,
           )}
         </div>
       )}

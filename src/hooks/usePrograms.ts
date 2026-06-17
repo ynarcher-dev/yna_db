@@ -58,6 +58,25 @@ export function useProgram(id: string | undefined) {
   });
 }
 
+/** id+name 옵션 목록 (Select 용, 예: 스타트업 상세에서 참여 프로그램 매핑). 미삭제 전체. */
+export function useProgramOptions() {
+  return useQuery({
+    queryKey: [TABLE, 'options'],
+    queryFn: async (): Promise<{ value: string; label: string }[]> => {
+      const { data, error } = await supabase
+        .from(TABLE)
+        .select('id, name, generation')
+        .is('deleted_at', null)
+        .order('name', { ascending: true });
+      if (error) throw error;
+      return (data ?? []).map((p) => ({
+        value: p.id as string,
+        label: `${p.name as string} (${p.generation as number}기)`,
+      }));
+    },
+  });
+}
+
 function toRow(input: ProgramInput) {
   return {
     name: input.name.trim(),
@@ -75,10 +94,16 @@ export function useProgramMutations() {
   const qc = useQueryClient();
   const invalidate = () => qc.invalidateQueries({ queryKey: [TABLE] });
 
+  // 생성 후 새 id 를 반환한다(.select) — 역방향 화면에서 "생성과 동시에 매핑"에 쓰인다.
   const create = useMutation({
-    mutationFn: async (input: ProgramInput) => {
-      const { error } = await supabase.from(TABLE).insert(toRow(input));
+    mutationFn: async (input: ProgramInput): Promise<{ id: string }> => {
+      const { data, error } = await supabase
+        .from(TABLE)
+        .insert(toRow(input))
+        .select('id')
+        .single();
       if (error) throw error;
+      return data as { id: string };
     },
     onSuccess: invalidate,
   });

@@ -15,8 +15,8 @@ const phoneSchema = z
 export const managerSchema = z.object({
   name: z.string().min(1, '이름을 입력해 주세요.').max(50),
   position: z.string().min(1, '직급을 입력해 주세요.').max(50),
-  /** 소속 본부 id (선택; Admin 만 변경) */
-  departmentId: z.string(),
+  /** 소속 팀 id (선택; Admin 만 변경). 회사·그룹은 팀에서 자동 도출 */
+  teamId: z.string(),
   phone: phoneSchema,
   specialties: z.array(z.string().min(1).max(30)).max(20, '관심 분야는 최대 20개까지 등록할 수 있습니다.'),
   profileImageUrl: z.string().url('올바른 URL 형식이 아닙니다.').or(z.literal('')),

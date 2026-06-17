@@ -16,8 +16,8 @@ interface StartupFormDrawerProps {
   /** edit 모드면 startup 필수 */
   startup?: Startup;
   onClose: () => void;
-  /** 저장 성공 후 콜백 (예: 상세 새로고침) */
-  onSaved?: () => void;
+  /** 저장 성공 후 콜백. 생성·수정된 스타트업 id 를 넘겨 역방향 자동 매핑에 쓰게 한다. */
+  onSaved?: (startupId: string) => void;
 }
 
 function toInput(s: Startup): StartupInput {
@@ -49,7 +49,7 @@ export function StartupFormDrawer({ open, startup, onClose, onSaved }: StartupFo
         {
           onSuccess: () => {
             toast.success('스타트업 정보가 수정되었습니다.');
-            onSaved?.();
+            onSaved?.(startup.id);
             onClose();
           },
           onError: (err) => toast.error('수정에 실패했습니다.', err),
@@ -57,9 +57,9 @@ export function StartupFormDrawer({ open, startup, onClose, onSaved }: StartupFo
       );
     } else {
       create.mutate(values, {
-        onSuccess: () => {
+        onSuccess: (created) => {
           toast.success('스타트업이 등록되었습니다.');
-          onSaved?.();
+          onSaved?.(created.id);
           onClose();
         },
         onError: (err) => toast.error('등록에 실패했습니다.', err),

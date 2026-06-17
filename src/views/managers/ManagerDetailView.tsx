@@ -32,7 +32,7 @@ export function ManagerDetailView() {
   const [editOpen, setEditOpen] = useState(false);
 
   const { data: manager, isLoading, isError, refetch } = useManager(id);
-  const { remove } = useManagerMutations();
+  const { remove, updateBiography, updateIntro } = useManagerMutations();
 
   if (isLoading) return <TableSkeleton rows={4} />;
   if (isError || !manager) {
@@ -98,7 +98,9 @@ export function ManagerDetailView() {
             {isSelf ? <Tag color="processing">나</Tag> : null}
           </>
         }
-        subtitle={`${manager.position}${manager.departmentName ? ` · ${manager.departmentName}` : ''}`}
+        subtitle={[manager.position, manager.companyName, manager.departmentName, manager.teamName]
+          .filter(Boolean)
+          .join(' · ')}
       >
         <Descriptions column={{ xs: 1, md: 2 }} size="small">
           <Descriptions.Item label="연락처">{manager.phone || '-'}</Descriptions.Item>
@@ -111,17 +113,55 @@ export function ManagerDetailView() {
         </Descriptions>
       </PersonProfileCard>
 
-      {/* 약력 (세로 표시) + 소개 — 전문가와 공유하는 블록 (기본 수정에서 비활성화하면 숨김) */}
-      {manager.sections.biography ? <BiographyView biography={manager.biography} /> : null}
-      {manager.sections.intro ? <ProfileTextBlock title="소개" text={manager.greeting} /> : null}
+      {/* 약력 + 소개 — 카드 자체의 '수정'에서 부분 저장 (기본 수정과 분리).
+          본인은 update_my_profile RPC, Admin 은 컬럼 직접 UPDATE 로 분기한다. */}
+      {manager.sections.biography ? (
+        <BiographyView
+          biography={manager.biography}
+          editable={canEdit}
+          saving={updateBiography.isPending}
+          onSave={(biography) =>
+            updateBiography.mutate(
+              { manager, biography, mode: isAdmin ? 'admin' : 'self' },
+              {
+                onSuccess: () => {
+                  toast.success('약력이 저장되었습니다.');
+                  void refetch();
+                },
+                onError: (e) => toast.error('저장에 실패했습니다.', e),
+              },
+            )
+          }
+        />
+      ) : null}
+      {manager.sections.intro ? (
+        <ProfileTextBlock
+          title="소개"
+          text={manager.greeting}
+          editable={canEdit}
+          saving={updateIntro.isPending}
+          onSave={(greeting) =>
+            updateIntro.mutate(
+              { manager, greeting, mode: isAdmin ? 'admin' : 'self' },
+              {
+                onSuccess: () => {
+                  toast.success('소개가 저장되었습니다.');
+                  void refetch();
+                },
+                onError: (e) => toast.error('저장에 실패했습니다.', e),
+              },
+            )
+          }
+        />
+      ) : null}
 
-      {/* 첨부파일 (전 도메인 공통 카드) */}
+      {/* 역방향 연계: 담당 스타트업·프로젝트·운영 프로그램 (각 섹션 토글로 표시/숨김) */}
+      <ManagerRelatedBlocks managerId={manager.id} sections={manager.sections} />
+
+      {/* 첨부파일 (전 도메인 공통 카드) — 항상 최하단 */}
       {manager.sections.attachments ? (
         <EntityFilesBlock entityType="manager" entityId={manager.id} />
       ) : null}
-
-      {/* 역방향 연계: 담당 스타트업·프로젝트·운영 프로그램 */}
-      <ManagerRelatedBlocks managerId={manager.id} />
 
       {canEdit ? (
         <ManagerFormDrawer

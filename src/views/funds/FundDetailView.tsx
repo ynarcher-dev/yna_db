@@ -13,6 +13,7 @@ import { LpCompositionBlock } from '@/components/funds/LpCompositionBlock';
 import { CapitalCallsBlock } from '@/components/funds/CapitalCallsBlock';
 import { FundInvestmentsBlock } from '@/components/funds/FundInvestmentsBlock';
 import { EntityFilesBlock } from '@/components/common/EntityFilesBlock';
+import { EntityManagersPanel } from '@/components/common/EntityManagersPanel';
 import { formatDate, formatKRW } from '@/lib/formatters';
 
 /**
@@ -82,7 +83,7 @@ export function FundDetailView() {
           <Descriptions.Item label="결성 총액">{formatKRW(fund.totalAmount)}</Descriptions.Item>
           <Descriptions.Item label="미소진 잔액">{formatKRW(fund.balance)}</Descriptions.Item>
           <Descriptions.Item label="투자 기간">{fund.investingPeriod}</Descriptions.Item>
-          <Descriptions.Item label="책임자">{fund.authorName || '관리자'}</Descriptions.Item>
+          <Descriptions.Item label="작성자">{fund.authorName || '관리자'}</Descriptions.Item>
           <Descriptions.Item label="등록일">{formatDate(fund.createdAt)}</Descriptions.Item>
           <Descriptions.Item label="수정일">{formatDate(fund.updatedAt)}</Descriptions.Item>
         </Descriptions>
@@ -91,6 +92,14 @@ export function FundDetailView() {
           <FundExhaustionBar totalAmount={fund.totalAmount} balance={fund.balance} />
         </div>
       </div>
+
+      {/* 담당자(다대다) 배정 패널 — 작성자(created_by)는 자동 편입된 필수 담당자. 편집은 Admin 만 */}
+      <EntityManagersPanel
+        kind="fund"
+        entityId={fund.id}
+        authorId={fund.createdById}
+        canEdit={isAdmin}
+      />
 
       {/* 카드 섹션: 기본 수정에서 비활성화한 섹션은 숨긴다 (fund.sections) */}
 

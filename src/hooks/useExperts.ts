@@ -149,6 +149,26 @@ export function useExpertMutations() {
     onSuccess: invalidate,
   });
 
+  // 약력·소개는 기본 수정에서 분리해 상세 카드에서 부분 저장한다(해당 컬럼만 갱신).
+  const updateBiography = useMutation({
+    mutationFn: async ({ id, biography }: { id: string; biography: ExpertInput['biography'] }) => {
+      const { error } = await supabase.from(TABLE).update({ biography }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+
+  const updateIntro = useMutation({
+    mutationFn: async ({ id, greeting }: { id: string; greeting: string }) => {
+      const { error } = await supabase
+        .from(TABLE)
+        .update({ greeting: greeting.trim() ? greeting.trim() : null })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: invalidate,
+  });
+
   // 소프트 딜리트 (RLS 상 Admin 만 deleted_at 설정 가능)
   const remove = useMutation({
     mutationFn: async (id: string) => {
@@ -161,5 +181,5 @@ export function useExpertMutations() {
     onSuccess: invalidate,
   });
 
-  return { create, update, remove };
+  return { create, update, updateBiography, updateIntro, remove };
 }

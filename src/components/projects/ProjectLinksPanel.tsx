@@ -74,7 +74,10 @@ export function ProjectLinksPanel({
 
   return (
     <div className="rounded-lg border border-yna-border bg-white p-6">
-      <h2 className="mb-3 text-base font-semibold text-yna-main">{title}</h2>
+      <h2 className="mb-3 text-base font-semibold text-yna-main">
+        {title}
+        <span className="ml-1 text-xs font-normal text-yna-point">(연동)</span>
+      </h2>
 
       {isLoading ? (
         <Spin size="small" />
