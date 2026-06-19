@@ -113,9 +113,10 @@ export function StartupDetailView() {
         ) : null}
       </div>
 
-      {/* 담당자(다대다) 배정 패널 — 작성자(created_by)는 자동 편입된 필수 담당자 */}
-      {startup.sections.managers ? (
-        <EntityManagersPanel kind="startup" entityId={startup.id} authorId={startup.createdById} />
+      {/* 담당자(다대다) 배정 패널 — 담당자는 모두 자유롭게 추가/해제(작성자 필수 편입 폐지, 0054). */}
+      {/* 담당자 배정은 '투자기업'(invested)일 때만 노출한다(발굴·보육·기타는 카드 자체를 숨김). */}
+      {startup.sections.managers && startup.managementStatus === 'invested' ? (
+        <EntityManagersPanel kind="startup" entityId={startup.id} />
       ) : null}
 
       {/* 카드 섹션: 기본 수정에서 비활성화한 섹션은 숨긴다 (startup.sections) */}
@@ -151,7 +152,7 @@ export function StartupDetailView() {
         <MemoBlock startup={startup} onSaved={() => void refetch()} />
       ) : null}
 
-      {/* 역방향 연계(매핑): 참여 프로그램·프로젝트. 투자 재원·금액은 위 투자현황이 담당 */}
+      {/* 정방향 연계 표시(읽기 전용): 참여 프로그램·프로젝트. 투자 재원·금액은 위 투자현황이 담당 */}
       <StartupRelatedBlocks startupId={startup.id} sections={startup.sections} />
 
       {/* 첨부파일 (전 도메인 공통 카드) — 항상 최하단 */}

@@ -1,5 +1,5 @@
 import { Tag } from 'antd';
-import { MANAGEMENT_STATUS_COLOR, MANAGEMENT_STATUS_LABEL } from '@/lib/labels';
+import { MANAGEMENT_STATUS_COLOR, MANAGEMENT_STATUS_LABEL, badgeTone } from '@/lib/labels';
 import type { ManagementStatus } from '@/types/database';
 
 /**
@@ -13,5 +13,5 @@ export function StartupStatusTag({
   etc?: string;
 }) {
   const label = status === 'other' ? etc?.trim() || MANAGEMENT_STATUS_LABEL.other : MANAGEMENT_STATUS_LABEL[status];
-  return <Tag color={MANAGEMENT_STATUS_COLOR[status]}>{label}</Tag>;
+  return <Tag {...badgeTone(MANAGEMENT_STATUS_COLOR[status])}>{label}</Tag>;
 }

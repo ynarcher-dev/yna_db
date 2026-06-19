@@ -107,7 +107,7 @@ export function ManagersListView() {
         />
         <Select
           allowClear
-          placeholder="직책 전체"
+          placeholder="등급 전체"
           options={APP_ROLE_OPTIONS}
           value={params.filters.role ?? undefined}
           onChange={(value) => params.setFilter('role', value)}

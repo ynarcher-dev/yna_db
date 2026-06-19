@@ -9,7 +9,7 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { DownloadPurposeModal } from '@/components/common/DownloadPurposeModal';
 import { FollowupFormModal } from './FollowupFormModal';
 import { SectionHeader } from './SectionHeader';
-import { REPORT_TYPE_COLOR, REPORT_TYPE_LABEL } from '@/lib/labels';
+import { REPORT_TYPE_COLOR, REPORT_TYPE_LABEL, badgeTone, type BadgeTone } from '@/lib/labels';
 import { formatDate } from '@/lib/formatters';
 import { getReportSignedUrl, logFileDownload, triggerBrowserDownload } from '@/lib/fileDownload';
 import type { StartupFollowup, FollowupFile } from '@/types/startupFollowup';
@@ -25,8 +25,9 @@ const SOURCE_TYPE = 'startup_followup';
 const SECTION_KEY = 'startup_followups';
 
 // 작성되면 기본 '제출 대기', 토글 ON 시 '제출 완료' (파일 유무와 무관).
-function statusOf(f: StartupFollowup): { label: string; color: string } {
-  return f.isSubmitted ? { label: '제출 완료', color: 'green' } : { label: '제출 대기', color: 'gold' };
+function statusOf(f: StartupFollowup): { label: string; tone: BadgeTone } {
+  // 제출 완료=종료(blue), 제출 대기=중간 상태(gold).
+  return f.isSubmitted ? { label: '제출 완료', tone: 'blue' } : { label: '제출 대기', tone: 'gold' };
 }
 
 /** 다운로드 목적 입력 대기 상태 (단일 파일 또는 묶음). */
@@ -183,11 +184,11 @@ export function FollowupsBlock({ startupId }: { startupId: string }) {
               <div key={f.id} className="rounded-md border border-yna-border p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium text-yna-main">{f.title}</span>
-                  <Tag color={REPORT_TYPE_COLOR[f.reportType]}>
+                  <Tag {...badgeTone(REPORT_TYPE_COLOR[f.reportType])}>
                     {REPORT_TYPE_LABEL[f.reportType] ?? f.reportType}
                   </Tag>
                   <span className="text-xs text-yna-sub">{f.reportingPeriod}</span>
-                  <Tag color={status.color}>{status.label}</Tag>
+                  <Tag {...badgeTone(status.tone)}>{status.label}</Tag>
                 </div>
 
                 {f.comment ? (

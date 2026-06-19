@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Tag, Select, Button, Spin } from 'antd';
+import { badgeTone } from '@/lib/labels';
 import { Link } from 'react-router-dom';
 import { HiOutlinePlus } from 'react-icons/hi';
 import {
@@ -91,6 +92,7 @@ export function ProjectLinksPanel({
                 e.preventDefault();
                 handleRemove(l.id, l.name);
               }}
+              {...badgeTone('neutral')}
               className="flex items-center gap-1 px-2 py-1"
             >
               <Link className="text-yna-point" to={`${cfg.path}/${l.entityId}`}>

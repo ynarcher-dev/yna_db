@@ -80,15 +80,7 @@ export const startupColumns = (opts?: DomainColumnOpts): Column<Startup>[] => [
     width: 180,
     ellipsis: true,
     ...sortProps<Startup>(opts, 'name'),
-    render: (_, r) => (
-      <span className="flex items-center gap-2">
-        <span
-          className="inline-block h-3 w-3 shrink-0 rounded-full"
-          style={{ backgroundColor: r.brandColor }}
-        />
-        <span className="font-medium text-yna-main">{r.name}</span>
-      </span>
-    ),
+    render: (_, r) => <span className="font-medium text-yna-main">{r.name}</span>,
   },
   { title: '대표자', key: 'ceo_name', width: 120, ellipsis: true, render: (_, r) => r.ceoName },
   {
@@ -104,22 +96,24 @@ export const startupColumns = (opts?: DomainColumnOpts): Column<Startup>[] => [
     render: (_, r) => <StartupStatusTag status={r.managementStatus} etc={r.managementStatusEtc} />,
   },
   {
-    title: '담당자',
-    key: 'manager',
-    width: 140,
-    ellipsis: { showTitle: true },
-    render: (_, r) => (r.managerNames.length ? r.managerNames.join(', ') : '-'),
-  },
-  {
     title: '기업 설명',
     key: 'description',
     width: 360,
     ellipsis: { showTitle: true },
     render: (_, r) => r.description || '-',
   },
+  {
+    title: '담당자',
+    key: 'manager',
+    width: 100, // 공용 메타 '작성자' 컬럼과 동일 폭(tableColumns.authorColumn)
+    ellipsis: { showTitle: true },
+    // 담당자는 '투자기업'(invested)에만 노출한다. 그 외(발굴·보육·기타)는 무조건 '-'.
+    render: (_, r) =>
+      r.managementStatus === 'invested' && r.managerNames.length ? r.managerNames.join(', ') : '-',
+  },
 ];
 
-/** 심사역 고유 컬럼: 이름·직급·직책·소속·관심 분야. (목록에서 본인 행에 '나' 태그) */
+/** 심사역 고유 컬럼: 이름·직급·소속·관심 분야·등급(직책). (목록에서 본인 행에 '나' 태그) */
 export const managerColumns = (
   opts?: DomainColumnOpts & { myId?: string },
 ): Column<Manager>[] => [
@@ -132,18 +126,21 @@ export const managerColumns = (
     render: (_, r) => (
       <span className="font-medium text-yna-main">
         {r.name}
-        {opts?.myId && r.id === opts.myId ? <Tag className="ml-2">나</Tag> : null}
+        {opts?.myId && r.id === opts.myId ? (
+          <Tag color="green" className="ml-2">
+            나
+          </Tag>
+        ) : null}
       </span>
     ),
   },
   { title: '직급', key: 'position', width: 120, ellipsis: true, render: (_, r) => r.position },
-  { title: '직책', key: 'role', width: 90, render: (_, r) => <RoleTag role={r.role} /> },
   {
     title: '소속',
     key: 'department',
     ellipsis: { showTitle: true },
     render: (_, r) => {
-      const parts = [r.departmentName, r.teamName].filter(Boolean);
+      const parts = [r.companyName, r.departmentName, r.teamName].filter(Boolean);
       return parts.length ? parts.join(' · ') : '-';
     },
   },
@@ -153,6 +150,7 @@ export const managerColumns = (
     ellipsis: true,
     render: (_, r) => <SpecialtyTags specialties={r.specialties} />,
   },
+  { title: '등급', key: 'role', width: 90, render: (_, r) => <RoleTag role={r.role} /> },
 ];
 
 /** 협력사 고유 컬럼: 기업/기관명·부서명·유형·담당자(해당 기업 측 연락 담당)·이메일. */

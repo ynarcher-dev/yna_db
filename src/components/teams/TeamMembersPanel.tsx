@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Select, Button, Tag, Empty } from 'antd';
+import { badgeTone } from '@/lib/labels';
 import { Link } from 'react-router-dom';
 import { HiOutlineX } from 'react-icons/hi';
 import { useTeamMembers, useTeamMemberMutations } from '@/hooks/useTeams';
@@ -84,7 +85,7 @@ export function TeamMembersPanel({
       ) : (
         <div className="flex flex-wrap gap-2">
           {members.map((m) => (
-            <Tag key={m.id} className="flex items-center gap-1 px-2 py-1">
+            <Tag key={m.id} {...badgeTone('neutral')} className="flex items-center gap-1 px-2 py-1">
               <Link to={`/managers/${m.id}`} className="text-yna-main hover:text-yna-point">
                 {m.name}
                 {m.position ? <span className="text-yna-sub"> · {m.position}</span> : null}

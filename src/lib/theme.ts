@@ -22,6 +22,9 @@ export const antdTheme: ThemeConfig = {
     },
     // 테이블 헤더: 전 컬럼 동일한 회색. 정렬 컬럼만 강조되지 않도록 통일.
     Table: {
+      // 표 바깥(위쪽 두 모서리) 라운드를 카드 섹션(rounded-lg=8px)과 동일하게.
+      // antd 기본은 borderRadiusLG(=base+2=10px)라 카드보다 더 둥글어 보이므로 8로 고정.
+      headerBorderRadius: 8,
       headerBg: '#e8e8e8',
       headerSortActiveBg: '#e8e8e8',
       headerSortHoverBg: '#dedede',

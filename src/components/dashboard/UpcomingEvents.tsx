@@ -2,7 +2,7 @@ import { Tag } from 'antd';
 import { HiOutlineCalendar } from 'react-icons/hi';
 import { EmptyState } from '@/components/common/EmptyState';
 import { formatDate } from '@/lib/formatters';
-import { EVENT_TYPE_LABEL } from '@/lib/labels';
+import { EVENT_TYPE_LABEL, badgeTone } from '@/lib/labels';
 import type { UpcomingEvent } from '@/types/dashboard';
 
 /**
@@ -23,7 +23,7 @@ export function UpcomingEvents({ events }: { events: UpcomingEvent[] }) {
             <p className="truncate text-sm font-medium text-yna-main">{event.title}</p>
             <p className="text-xs text-gray-500">{formatDate(event.eventDate)}</p>
           </div>
-          <Tag color="default">{EVENT_TYPE_LABEL[event.eventType]}</Tag>
+          <Tag {...badgeTone('neutral')}>{EVENT_TYPE_LABEL[event.eventType]}</Tag>
         </li>
       ))}
     </ul>

@@ -1,5 +1,5 @@
 import { Tag } from 'antd';
-import { PROJECT_TYPE_COLOR, PROJECT_TYPE_LABEL } from '@/lib/labels';
+import { PROJECT_TYPE_COLOR, PROJECT_TYPE_LABEL, badgeTone } from '@/lib/labels';
 import type { ProjectType } from '@/types/database';
 
 /**
@@ -8,5 +8,5 @@ import type { ProjectType } from '@/types/database';
  */
 export function ProjectTypeTag({ type, etc }: { type: ProjectType; etc?: string }) {
   const label = type === 'other' && etc ? etc : PROJECT_TYPE_LABEL[type];
-  return <Tag color={PROJECT_TYPE_COLOR[type]}>{label}</Tag>;
+  return <Tag {...badgeTone(PROJECT_TYPE_COLOR[type])}>{label}</Tag>;
 }

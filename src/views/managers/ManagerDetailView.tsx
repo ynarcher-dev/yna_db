@@ -95,7 +95,7 @@ export function ManagerDetailView() {
         tags={
           <>
             <RoleTag role={manager.role} />
-            {isSelf ? <Tag color="processing">나</Tag> : null}
+            {isSelf ? <Tag color="green">나</Tag> : null}
           </>
         }
         subtitle={[manager.position, manager.companyName, manager.departmentName, manager.teamName]

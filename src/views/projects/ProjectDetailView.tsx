@@ -108,9 +108,9 @@ export function ProjectDetailView() {
 
       {/* 카드 섹션: 기본 수정에서 비활성화한 섹션은 숨긴다 (project.sections) */}
 
-      {/* 담당자(다대다) 배정 패널 — 작성자(created_by)는 자동 편입된 필수 담당자 */}
+      {/* 담당자(다대다) 배정 패널 — 담당자는 모두 자유롭게 추가/해제(작성자 필수 편입 폐지, 0054). */}
       {project.sections.managers ? (
-        <EntityManagersPanel kind="project" entityId={project.id} authorId={project.createdById} />
+        <EntityManagersPanel kind="project" entityId={project.id} />
       ) : null}
 
       {/* 매칭 스타트업·협력사 매핑 패널 (좌우 2열) */}

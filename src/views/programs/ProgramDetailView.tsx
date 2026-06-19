@@ -108,9 +108,9 @@ export function ProgramDetailView() {
 
       {/* 카드 섹션: 기본 수정에서 비활성화한 섹션은 숨긴다 (program.sections) */}
 
-      {/* 담당자 매핑 (다대다 + 운영 역할) — 작성자(created_by)는 운영총괄로 자동 편입된 필수 담당자 */}
+      {/* 담당자 매핑 (다대다 + 운영 역할) — 담당자는 모두 자유롭게 추가/해제(작성자 필수 편입 폐지, 0054). */}
       {program.sections.managers ? (
-        <EntityManagersPanel kind="program" entityId={program.id} authorId={program.createdById} />
+        <EntityManagersPanel kind="program" entityId={program.id} />
       ) : null}
 
       {/* 참여 스타트업 매핑 (보육 상태) */}

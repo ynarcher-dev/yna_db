@@ -16,15 +16,17 @@ interface ManagerJoinConfig {
   table: string;
   /** 부모 엔티티 FK 컬럼 */
   fk: string;
+  /** 부모 엔티티 테이블(=목록·상세 쿼리 키). 담당자 변이 후 임베드된 담당자 이름을 갱신하려면 함께 무효화한다. */
+  parentTable: string;
   /** 운영 역할(role) 컬럼 보유 여부 — 프로그램 전용 */
   hasRole?: boolean;
 }
 
 const CONFIG: Record<ManagerEntityKind, ManagerJoinConfig> = {
-  project: { table: 'project_managers', fk: 'project_id' },
-  startup: { table: 'startup_managers', fk: 'startup_id' },
-  program: { table: 'program_managers', fk: 'program_id', hasRole: true },
-  fund: { table: 'fund_managers', fk: 'fund_id' },
+  project: { table: 'project_managers', fk: 'project_id', parentTable: 'projects' },
+  startup: { table: 'startup_managers', fk: 'startup_id', parentTable: 'startups' },
+  program: { table: 'program_managers', fk: 'program_id', parentTable: 'programs', hasRole: true },
+  fund: { table: 'fund_managers', fk: 'fund_id', parentTable: 'funds' },
 };
 
 /** 담당자 1건 (조인 행 + 심사역 도메인 객체 + (프로그램) 역할). */
@@ -75,7 +77,13 @@ export function useEntityManagers(kind: ManagerEntityKind, entityId: string | un
 export function useEntityManagerMutations(kind: ManagerEntityKind, entityId: string) {
   const cfg = CONFIG[kind];
   const qc = useQueryClient();
-  const invalidate = () => qc.invalidateQueries({ queryKey: [cfg.table, entityId] });
+  // 담당자 패널 쿼리 + 부모 엔티티(목록·상세) 쿼리를 함께 무효화한다.
+  // 목록/상세 행은 담당자 이름을 임베드(예: startups → startup_managers(manager(name)))하므로
+  // 패널만 무효화하면 데이터테이블의 '담당자' 컬럼이 갱신되지 않는다.
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: [cfg.table, entityId] });
+    qc.invalidateQueries({ queryKey: [cfg.parentTable] });
+  };
 
   // 담당자 배정(추가). UNIQUE({fk}, manager_id) 로 중복은 DB가 막는다.
   // 프로그램은 역할(role)을 함께 저장(미지정 시 운영담당 operator).

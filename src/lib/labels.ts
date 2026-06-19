@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import type {
   AppRole,
   EventType,
@@ -12,6 +13,32 @@ import type {
   ProjectType,
   ReportType,
 } from '@/types/database';
+
+/**
+ * 뱃지 색 규칙 (17_conventions.md 8장 / 5_managers.md 5.3) — 전 도메인 공통 단일 소스.
+ * 모든 상태/유형 배지는 antd 프리셋 색 대신 아래 5개 톤 중 하나로 분류하고 `badgeTone()` 으로 렌더한다.
+ *
+ *  - `red`     : 권한·역할(시스템 등급·운영총괄·작성자 등) **또는** '투자기업'
+ *  - `blue`    : 종료된 경우(완료·수료·취소 등 끝난 상태)
+ *  - `green`   : 진행중인 경우
+ *  - `gold`    : 중간 상태(대기·심사중·탈락 등 진행도 종료도 아닌 상태)
+ *  - `neutral` : 그 외 전부 — 흰 배경·회색 글자(유형/카테고리 배지 등)
+ *
+ * ※ 삭제(danger) 버튼은 이 규칙의 **예외**(빨강 유지). 색 분류만 바꾸려면 아래 `*_COLOR` 맵의 값 한 단어만 고친다.
+ */
+export type BadgeTone = 'red' | 'blue' | 'green' | 'gold' | 'neutral';
+
+/** `neutral` 톤 커스텀 색 — 흰 배경(#ffffff) · 회색 글자(#8c8c8c) · 회색 테두리(#d9d9d9). antd 프리셋에 없는 조합. */
+export const NEUTRAL_BADGE_STYLE: CSSProperties = {
+  background: '#ffffff',
+  borderColor: '#d9d9d9',
+  color: '#8c8c8c',
+};
+
+/** BadgeTone → antd `<Tag>` props. neutral 은 style(흰/회), 나머지는 프리셋 color 로 렌더. */
+export function badgeTone(tone: BadgeTone): { color?: string; style?: CSSProperties } {
+  return tone === 'neutral' ? { style: NEUTRAL_BADGE_STYLE } : { color: tone };
+}
 
 /**
  * DB 영문 enum → 한국어 라벨 단일 매핑 (17_conventions.md 5장).
@@ -40,14 +67,14 @@ export const EVENT_TYPE_OPTIONS = (Object.keys(EVENT_TYPE_LABEL) as EventType[])
   label: EVENT_TYPE_LABEL[value],
 }));
 
-/** 일정 유형별 색상 (#HEX, FullCalendar 이벤트 색) */
+/** 일정 유형별 색상 (#HEX, FullCalendar 이벤트 색). 유형 배지 → 규칙상 neutral(회색)로 통일. */
 export const EVENT_TYPE_COLOR: Record<EventType, string> = {
-  recruitment: '#4a90d9',
-  demoday: '#e22213',
-  networking: '#7ac74f',
-  meeting: '#f5a623',
-  ir: '#9b59b6',
-  event: '#515151',
+  recruitment: '#8c8c8c',
+  demoday: '#8c8c8c',
+  networking: '#8c8c8c',
+  meeting: '#8c8c8c',
+  ir: '#8c8c8c',
+  event: '#8c8c8c',
 };
 
 export const PARTNER_TYPE_LABEL: Record<PartnerType, string> = {
@@ -63,13 +90,13 @@ export const PARTNER_TYPE_OPTIONS = (Object.keys(PARTNER_TYPE_LABEL) as PartnerT
   (value) => ({ value, label: PARTNER_TYPE_LABEL[value] }),
 );
 
-/** 협력사 유형별 태그 색상 (antd Tag color) */
-export const PARTNER_TYPE_COLOR: Record<PartnerType, string> = {
-  government: 'blue',
-  university: 'purple',
-  vc: 'gold',
-  corporation: 'geekblue',
-  partner: 'default',
+/** 협력사 유형별 태그 톤 — 유형 배지라 전부 neutral. */
+export const PARTNER_TYPE_COLOR: Record<PartnerType, BadgeTone> = {
+  government: 'neutral',
+  university: 'neutral',
+  vc: 'neutral',
+  corporation: 'neutral',
+  partner: 'neutral',
 };
 
 /** 전문가 유형 한국어 라벨 (9_experts.md) */
@@ -85,11 +112,11 @@ export const EXPERT_TYPE_OPTIONS = (Object.keys(EXPERT_TYPE_LABEL) as ExpertType
   label: EXPERT_TYPE_LABEL[value],
 }));
 
-/** 전문가 유형별 태그 색상 (antd Tag color) */
-export const EXPERT_TYPE_COLOR: Record<ExpertType, string> = {
-  mentor: 'green',
-  auditor: 'gold',
-  advisor: 'blue',
+/** 전문가 유형별 태그 톤 — 유형 배지라 전부 neutral. */
+export const EXPERT_TYPE_COLOR: Record<ExpertType, BadgeTone> = {
+  mentor: 'neutral',
+  auditor: 'neutral',
+  advisor: 'neutral',
 };
 
 /**
@@ -115,15 +142,15 @@ export const INVESTMENT_STAGE_OPTIONS = INVESTMENT_STAGE_VALUES.map((value) => (
   label: value,
 }));
 
-/** 투자 단계별 태그 색상 (antd Tag color). 단계가 오를수록 진한 색. */
-export const INVESTMENT_STAGE_COLOR: Record<InvestmentStage, string> = {
-  Seed: 'default',
-  'Pre-A': 'cyan',
-  'Series A': 'blue',
-  'Series B': 'geekblue',
-  'Series C': 'purple',
-  'Series D 이상': 'magenta',
-  'IPO/Exit': 'gold',
+/** 투자 단계별 태그 톤 — 유형(단계) 배지라 전부 neutral. */
+export const INVESTMENT_STAGE_COLOR: Record<InvestmentStage, BadgeTone> = {
+  Seed: 'neutral',
+  'Pre-A': 'neutral',
+  'Series A': 'neutral',
+  'Series B': 'neutral',
+  'Series C': 'neutral',
+  'Series D 이상': 'neutral',
+  'IPO/Exit': 'neutral',
 };
 
 /** 관리 현황 허용값 (zod enum / Select 옵션 단일 소스) */
@@ -147,12 +174,12 @@ export const MANAGEMENT_STATUS_OPTIONS = (
   Object.keys(MANAGEMENT_STATUS_LABEL) as ManagementStatus[]
 ).map((value) => ({ value, label: MANAGEMENT_STATUS_LABEL[value] }));
 
-/** 관리 현황별 태그 색상 (antd Tag color) */
-export const MANAGEMENT_STATUS_COLOR: Record<ManagementStatus, string> = {
-  sourced: 'blue',
+/** 관리 현황별 태그 톤 — '투자기업'=red, 보육중=green(진행), 발굴·기타=neutral. */
+export const MANAGEMENT_STATUS_COLOR: Record<ManagementStatus, BadgeTone> = {
+  sourced: 'neutral',
   incubated: 'green',
-  invested: 'gold',
-  other: 'default',
+  invested: 'red',
+  other: 'neutral',
 };
 
 /** 후속 보고 유형 허용값 (zod enum / Select 옵션 단일 소스) */
@@ -179,13 +206,13 @@ export const REPORT_TYPE_OPTIONS = (Object.keys(REPORT_TYPE_LABEL) as ReportType
   label: REPORT_TYPE_LABEL[value],
 }));
 
-/** 후속 보고 유형별 태그 색상 (antd Tag color) */
-export const REPORT_TYPE_COLOR: Record<ReportType, string> = {
-  quarterly: 'blue',
-  semiannual: 'cyan',
-  annual: 'geekblue',
-  interim: 'default',
-  risk_report: 'red',
+/** 후속 보고 유형별 태그 톤 — 유형 배지라 전부 neutral. */
+export const REPORT_TYPE_COLOR: Record<ReportType, BadgeTone> = {
+  quarterly: 'neutral',
+  semiannual: 'neutral',
+  annual: 'neutral',
+  interim: 'neutral',
+  risk_report: 'neutral',
 };
 
 /** 투자자 구분 허용값 / 라벨 (startup_metrics.investor_type) */
@@ -200,9 +227,10 @@ export const INVESTOR_TYPE_OPTIONS = (Object.keys(INVESTOR_TYPE_LABEL) as Invest
   (value) => ({ value, label: INVESTOR_TYPE_LABEL[value] }),
 );
 
-export const INVESTOR_TYPE_COLOR: Record<InvestorType, string> = {
-  internal: 'red',
-  external: 'default',
+/** 투자자 구분 톤 — 유형(자사/외부) 배지라 전부 neutral. */
+export const INVESTOR_TYPE_COLOR: Record<InvestorType, BadgeTone> = {
+  internal: 'neutral',
+  external: 'neutral',
 };
 
 /**
@@ -246,10 +274,11 @@ export const PROJECT_TYPE_OPTIONS = (Object.keys(PROJECT_TYPE_LABEL) as ProjectT
   (value) => ({ value, label: PROJECT_TYPE_LABEL[value] }),
 );
 
-export const PROJECT_TYPE_COLOR: Record<ProjectType, string> = {
-  m_and_a: 'volcano',
-  new_business: 'geekblue',
-  other: 'default',
+/** 프로젝트 유형 톤 — 유형 배지라 전부 neutral. */
+export const PROJECT_TYPE_COLOR: Record<ProjectType, BadgeTone> = {
+  m_and_a: 'neutral',
+  new_business: 'neutral',
+  other: 'neutral',
 };
 
 /**
@@ -276,13 +305,13 @@ export const PROJECT_STAGE_OPTIONS = (Object.keys(PROJECT_STAGE_LABEL) as Projec
   (value) => ({ value, label: PROJECT_STAGE_LABEL[value] }),
 );
 
-/** 진행 상태별 태그 색상 */
-export const PROJECT_STAGE_COLOR: Record<ProjectStage, string> = {
-  pending: 'default',
-  in_progress: 'blue',
-  completed: 'green',
-  suspended: 'orange',
-  canceled: 'red',
+/** 진행 상태별 태그 톤 — 진행중=green, 완료·취소(종료)=blue, 대기·중단(중간)=gold. */
+export const PROJECT_STAGE_COLOR: Record<ProjectStage, BadgeTone> = {
+  pending: 'gold',
+  in_progress: 'green',
+  completed: 'blue',
+  suspended: 'gold',
+  canceled: 'blue',
 };
 
 /** 프로젝트 우선순위 (projects.priority) */
@@ -298,10 +327,11 @@ export const PROJECT_PRIORITY_OPTIONS = (
   Object.keys(PROJECT_PRIORITY_LABEL) as ProjectPriority[]
 ).map((value) => ({ value, label: PROJECT_PRIORITY_LABEL[value] }));
 
-export const PROJECT_PRIORITY_COLOR: Record<ProjectPriority, string> = {
-  high: 'red',
-  medium: 'gold',
-  low: 'default',
+/** 우선순위 톤 — 권한/진행/종료 의미가 아니라 중요도 → 전부 neutral. */
+export const PROJECT_PRIORITY_COLOR: Record<ProjectPriority, BadgeTone> = {
+  high: 'neutral',
+  medium: 'neutral',
+  low: 'neutral',
 };
 
 /** 프로그램 운영 심사역 역할 (program_managers.role) */
@@ -316,9 +346,10 @@ export const PROGRAM_MANAGER_ROLE_OPTIONS = (
   Object.keys(PROGRAM_MANAGER_ROLE_LABEL) as ProgramManagerRole[]
 ).map((value) => ({ value, label: PROGRAM_MANAGER_ROLE_LABEL[value] }));
 
-export const PROGRAM_MANAGER_ROLE_COLOR: Record<ProgramManagerRole, string> = {
-  lead: 'gold',
-  operator: 'default',
+/** 운영 역할 톤 — 운영총괄=red(역할성 권한), 운영담당=neutral. */
+export const PROGRAM_MANAGER_ROLE_COLOR: Record<ProgramManagerRole, BadgeTone> = {
+  lead: 'red',
+  operator: 'neutral',
 };
 
 /** 프로그램 참여 스타트업 상태 (program_startups.status) */
@@ -342,12 +373,13 @@ export const PROGRAM_STARTUP_STATUS_OPTIONS = (
   Object.keys(PROGRAM_STARTUP_STATUS_LABEL) as ProgramStartupStatus[]
 ).map((value) => ({ value, label: PROGRAM_STARTUP_STATUS_LABEL[value] }));
 
-export const PROGRAM_STARTUP_STATUS_COLOR: Record<ProgramStartupStatus, string> = {
-  applied: 'default',
-  screening: 'blue',
+/** 참여 상태 톤 — 선정=green(진행), 수료=blue(종료), 지원·심사중·중도탈락=gold(중간). */
+export const PROGRAM_STARTUP_STATUS_COLOR: Record<ProgramStartupStatus, BadgeTone> = {
+  applied: 'gold',
+  screening: 'gold',
   selected: 'green',
-  completed: 'geekblue',
-  dropped: 'red',
+  completed: 'blue',
+  dropped: 'gold',
 };
 
 /**
@@ -366,10 +398,10 @@ export type Company = (typeof COMPANY_VALUES)[number];
 /** antd Select 옵션 (값=라벨) */
 export const COMPANY_OPTIONS = COMPANY_VALUES.map((value) => ({ value, label: value }));
 
-/** 시스템 역할 한국어 라벨 (5_managers.md role) */
+/** 시스템 역할(=등급) 한국어 라벨 (5_managers.md role). manager 는 화면 표기상 '일반'. */
 export const APP_ROLE_LABEL: Record<AppRole, string> = {
   admin: '관리자',
-  manager: '심사역',
+  manager: '일반',
 };
 
 /** antd Select 옵션 (라벨 매핑 단일 소스에서 파생) */
@@ -378,8 +410,8 @@ export const APP_ROLE_OPTIONS = (Object.keys(APP_ROLE_LABEL) as AppRole[]).map((
   label: APP_ROLE_LABEL[value],
 }));
 
-/** 시스템 역할별 태그 색상 (antd Tag color) */
-export const APP_ROLE_COLOR: Record<AppRole, string> = {
+/** 시스템 등급 톤 — 관리자=red(권한), 일반=neutral(흰/회). */
+export const APP_ROLE_COLOR: Record<AppRole, BadgeTone> = {
   admin: 'red',
-  manager: 'blue',
+  manager: 'neutral',
 };

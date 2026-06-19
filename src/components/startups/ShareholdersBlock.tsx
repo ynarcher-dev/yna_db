@@ -79,6 +79,7 @@ export function ShareholdersBlock({ startup, onSaved }: { startup: Startup; onSa
                   nameKey="name"
                   cx="50%"
                   cy="50%"
+                  innerRadius={50}
                   outerRadius={90}
                   label={(entry) => `${entry.name} ${formatPercent(entry.percentage)}`}
                 >

@@ -77,6 +77,7 @@ interface Manager {
 ### 1) 고유 UI 블록 (Inherent UI Blocks)
 *   **심사역 기본 정보 카드 (목록/상세)**: 이름, 직급, 프로필 이미지, 전문 분야 태그, 연락처 정보 렌더링 블록
 *   **심사역 프로필 등록/수정 폼**: 기본 인사 정보 입력란 및 프로필 이미지 업로더, 약력 입력용 행 추가 에디터
+*   **등급 배지 (`role` → 관리자 / 일반)**: 목록 표 맨 오른쪽 '등급' 컬럼과 상세 카드에 표기. `admin`=**관리자**(빨강=권한), `manager`=**일반**(neutral=흰/회). 색은 전 도메인 공통 **뱃지 색 규칙**([17_conventions.md](17_conventions.md) 8장)을 따른다. 라벨·톤 단일 소스: [labels.ts](../src/lib/labels.ts) `APP_ROLE_LABEL` / `APP_ROLE_COLOR` / `NEUTRAL_BADGE_STYLE`, 렌더: [RoleTag.tsx](../src/components/managers/RoleTag.tsx).
 
 ### 2) 연계 UI 블록 (Connected UI Blocks)
 *   **소속 정보 배지**: 심사역 프로필 상단에 소속 **회사 · 그룹 · 팀**(`team_id` → 팀·그룹·회사 임베드) 배지 표기. 팀이 없으면 노출 생략.

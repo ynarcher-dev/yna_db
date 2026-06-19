@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Button, Tag } from 'antd';
+import { badgeTone } from '@/lib/labels';
 import { BusinessTeamFormDrawer } from './BusinessTeamFormDrawer';
 import { SectionHeader } from './SectionHeader';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -92,14 +93,7 @@ export function BusinessTeamBlock({ startup, onSaved }: { startup: Startup; onSa
                 </p>
                 <div className="flex flex-wrap gap-1">
                   {t.capabilities.map((c) => (
-                    <Tag
-                      key={c}
-                      style={{
-                        backgroundColor: '#FFFFFF',
-                        color: startup.brandColor,
-                        borderColor: startup.brandColor,
-                      }}
-                    >
+                    <Tag key={c} {...badgeTone('neutral')}>
                       {c}
                     </Tag>
                   ))}

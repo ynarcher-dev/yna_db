@@ -10,7 +10,7 @@ import { MetricBarChart } from './MetricCharts';
 import { SectionHeader } from './SectionHeader';
 import { BusinessStatusSection } from './BusinessStatusSection';
 import { formatDate, formatKRW } from '@/lib/formatters';
-import { INVESTOR_TYPE_COLOR, INVESTOR_TYPE_LABEL } from '@/lib/labels';
+import { INVESTOR_TYPE_COLOR, INVESTOR_TYPE_LABEL, badgeTone } from '@/lib/labels';
 import type { StartupMetric } from '@/types/startupMetric';
 import type { Startup } from '@/types/startup';
 import type { InvestorType } from '@/types/database';
@@ -309,7 +309,7 @@ export function MetricsBlock({ startup, onSaved }: { startup: Startup; onSaved?:
                           // 자사 투자=재원 펀드와 연동된 행 → 펀드 상세 링크. (연동) 표시는 카드 헤더에서.
                           return (
                             <span className="flex items-center justify-end gap-1">
-                              <Tag color={INVESTOR_TYPE_COLOR.internal}>
+                              <Tag {...badgeTone(INVESTOR_TYPE_COLOR.internal)}>
                                 {INVESTOR_TYPE_LABEL.internal}
                               </Tag>
                               <Link className="text-yna-point" to={`/funds/${r.fundId}`}>
@@ -321,7 +321,7 @@ export function MetricsBlock({ startup, onSaved }: { startup: Startup; onSaved?:
                         return r.investor || r.investorType ? (
                           <span className="flex items-center justify-end gap-1">
                             {r.investorType ? (
-                              <Tag color={INVESTOR_TYPE_COLOR[r.investorType as InvestorType]}>
+                              <Tag {...badgeTone(INVESTOR_TYPE_COLOR[r.investorType as InvestorType])}>
                                 {INVESTOR_TYPE_LABEL[r.investorType as InvestorType]}
                               </Tag>
                             ) : null}

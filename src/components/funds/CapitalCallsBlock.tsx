@@ -60,9 +60,9 @@ export function CapitalCallsBlock({ fundId, isAdmin }: { fundId: string; isAdmin
       width: 150,
       render: (_, r) =>
         r.isCompleted ? (
-          <Tag color="green">완료 ({formatDate(r.completedDate)})</Tag>
+          <Tag color="blue">완료 ({formatDate(r.completedDate)})</Tag>
         ) : (
-          <Tag>미납입</Tag>
+          <Tag color="gold">미납입</Tag>
         ),
     },
     ...(isAdmin

@@ -194,3 +194,21 @@ interface BasePerson {
 * **첨부파일 카드**는 위 모든 도메인에 공통으로 들어가며(전 도메인 상세), 다른 섹션과 동일하게 `sections.attachments` 토글로 표시/숨김합니다. 카드 구현 자체는 [PATTERNS.md](PATTERNS.md) 16장(공통 `EntityFilesBlock`).
 
 * 코드 구현 표준과 새 도메인 적용 절차는 [PATTERNS.md](PATTERNS.md) 15장을 따릅니다.
+
+---
+
+## 8. 뱃지 색 규칙 (Badge Color Rule)
+
+전 도메인의 상태/유형 **배지(antd `<Tag>`) 색은 의미 기반 5개 톤**으로만 표현합니다. 도메인별 임의 색을 쓰지 않고, 톤 단일 소스([labels.ts](../src/lib/labels.ts) `BadgeTone` / `badgeTone()`)를 거쳐 렌더합니다. 색 분류를 바꿀 때는 각 `*_COLOR` 맵의 값(톤) 한 단어만 고치면 화면 전체에 일관 반영됩니다.
+
+| 톤 | 색 | 의미 |
+| :--- | :--- | :--- |
+| `red` | 빨강 | **권한·역할**(시스템 등급 `admin`·운영총괄·작성자 등 역할성 권한) **또는 '투자기업'** |
+| `blue` | 파랑 | **종료**된 경우 (완료·수료·취소 등 끝난 상태) |
+| `green` | 초록 | **진행중**인 경우 (운영중·보육중·선정 등) |
+| `gold` | 노랑 | **중간 상태** (대기·심사중·미납입·중도탈락 등 진행도 종료도 아닌 상태) |
+| `neutral` | 흰/회 | **그 외 전부** — 흰 배경(`#ffffff`)·회색 글자(`#8c8c8c`)·회색 테두리(`#d9d9d9`). 순수 유형/카테고리 배지(협력사·전문가·프로젝트·보고 유형, 투자단계, 우선순위, 투자자 구분, 관심분야 키워드 등) |
+
+* **예외**: **삭제(danger) 버튼**은 본 규칙에서 제외되며 antd `danger`(빨강)를 그대로 사용합니다.
+* `neutral` 톤은 antd 프리셋에 없는 흰/회 조합이라 `NEUTRAL_BADGE_STYLE`(style)로 렌더하고, 나머지 톤은 antd 프리셋 `color`로 렌더합니다(`badgeTone()`가 분기).
+* 달력(FullCalendar) 이벤트 색도 유형 배지로 보아 `neutral`(회색)으로 통일합니다([labels.ts](../src/lib/labels.ts) `EVENT_TYPE_COLOR`).

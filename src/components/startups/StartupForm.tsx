@@ -58,7 +58,10 @@ export function StartupForm({
     mode: 'onBlur',
     defaultValues: defaultValues ?? EMPTY,
   });
-  const isEtcStatus = watch('managementStatus') === 'other';
+  const managementStatus = watch('managementStatus');
+  const isEtcStatus = managementStatus === 'other';
+  // 담당자 배정은 '투자기업'(invested)일 때만 상세 화면에 노출된다.
+  const isInvested = managementStatus === 'invested';
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
@@ -117,7 +120,9 @@ export function StartupForm({
         ) : null}
       </div>
 
-      <p className="text-xs text-yna-sub">담당 심사역은 등록 후 상세 화면의 ‘담당자’ 카드에서 배정합니다.</p>
+      {isInvested ? (
+        <p className="text-xs text-yna-sub">담당 심사역은 등록 후 상세 화면의 ‘담당자’ 카드에서 배정합니다.</p>
+      ) : null}
 
       <div>
         <label className="mb-1 block text-sm text-yna-main">로고 이미지</label>
