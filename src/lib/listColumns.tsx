@@ -1,18 +1,20 @@
 import { Tag, type TableProps } from 'antd';
 import { formatDate, formatKRWShort } from '@/lib/formatters';
-import { ProjectTypeTag } from '@/components/projects/ProjectTypeTag';
 import { ProjectStageTag } from '@/components/projects/ProjectStageTag';
-import { ProjectPriorityTag } from '@/components/projects/ProjectPriorityTag';
+import { BusinessStatusTag } from '@/components/businesses/BusinessStatusTag';
 import { StartupStageTag } from '@/components/startups/StartupStageTag';
 import { StartupStatusTag } from '@/components/startups/StartupStatusTag';
 import { PartnerTypeTag } from '@/components/partners/PartnerTypeTag';
 import { RoleTag } from '@/components/managers/RoleTag';
 import { SpecialtyTags } from '@/components/experts/SpecialtyTags';
-import type { Program } from '@/types/program';
+import { MatchingProgramStatusTag } from '@/components/matchingPrograms/MatchingProgramStatusTag';
+import type { Business } from '@/types/business';
 import type { Project } from '@/types/project';
 import type { Startup } from '@/types/startup';
 import type { Partner } from '@/types/partner';
 import type { Manager } from '@/types/manager';
+import type { MatchingProgram } from '@/types/matchingProgram';
+import type { InvestArchive } from '@/types/investArchive';
 
 type Column<T> = NonNullable<TableProps<T>['columns']>[number];
 type SortOrder = 'ascend' | 'descend' | null;
@@ -31,30 +33,18 @@ interface DomainColumnOpts {
 const sortProps = <T,>(opts: DomainColumnOpts | undefined, key: string): Partial<Column<T>> =>
   opts?.sortOrderOf ? { sorter: true, sortOrder: opts.sortOrderOf(key) } : {};
 
-/** 프로그램 고유 컬럼: 프로그램명·기수·예산·기간·담당자. */
-export const programColumns = (opts?: DomainColumnOpts): Column<Program>[] => [
+/**
+ * 사업 고유 컬럼: 사업명·기간·상태·담당자.
+ * 사업·M&A·신사업 목록을 동일 구조로 통일(2026-06-21) — projectColumns 와 같은 순서/폭.
+ */
+export const businessColumns = (opts?: DomainColumnOpts): Column<Business>[] => [
   {
-    title: '프로그램명',
+    title: '사업명',
     key: 'name',
     width: 220,
     ellipsis: true,
-    ...sortProps<Program>(opts, 'name'),
+    ...sortProps<Business>(opts, 'name'),
     render: (_, r) => <span className="font-medium text-yna-main">{r.name}</span>,
-  },
-  {
-    title: '기수',
-    key: 'generation',
-    width: 70,
-    align: 'center',
-    ...sortProps<Program>(opts, 'generation'),
-    render: (_, r) => `${r.generation}기`,
-  },
-  {
-    title: '예산',
-    key: 'budget',
-    width: 110,
-    align: 'right',
-    render: (_, r) => formatKRWShort(r.budget),
   },
   {
     title: '기간',
@@ -64,11 +54,75 @@ export const programColumns = (opts?: DomainColumnOpts): Column<Program>[] => [
     render: (_, r) => `${formatDate(r.startDate)} ~ ${formatDate(r.endDate)}`,
   },
   {
+    title: '상태',
+    key: 'status',
+    width: 90,
+    render: (_, r) => <BusinessStatusTag status={r.status} />,
+  },
+  {
     title: '담당자',
     key: 'managers',
     width: 140,
     ellipsis: { showTitle: true },
     render: (_, r) => (r.managerNames.length ? r.managerNames.join(', ') : '-'),
+  },
+];
+
+/** 매칭 프로그램 고유 컬럼: 프로그램명·주관 기관·시행 연도·상태·매칭 예산. */
+export const matchingProgramColumns = (opts?: DomainColumnOpts): Column<MatchingProgram>[] => [
+  {
+    title: '프로그램명',
+    key: 'name',
+    width: 200,
+    ellipsis: true,
+    ...sortProps<MatchingProgram>(opts, 'name'),
+    render: (_, r) => <span className="font-medium text-yna-main">{r.name}</span>,
+  },
+  { title: '주관 기관', key: 'agency', width: 160, ellipsis: true, render: (_, r) => r.agency || '-' },
+  {
+    title: '연도',
+    key: 'year',
+    width: 80,
+    align: 'center',
+    ...sortProps<MatchingProgram>(opts, 'year'),
+    render: (_, r) => `${r.year}년`,
+  },
+  {
+    title: '상태',
+    key: 'status',
+    width: 90,
+    render: (_, r) => <MatchingProgramStatusTag status={r.status} />,
+  },
+  {
+    title: '매칭 예산',
+    key: 'budget',
+    width: 110,
+    align: 'right',
+    render: (_, r) => formatKRWShort(r.budget),
+  },
+];
+
+/** 투자 자료실 고유 컬럼: 제목(고정 배지)·조회수. */
+export const investArchiveColumns = (opts?: DomainColumnOpts): Column<InvestArchive>[] => [
+  {
+    title: '제목',
+    key: 'title',
+    ellipsis: true,
+    ...sortProps<InvestArchive>(opts, 'title'),
+    render: (_, r) => (
+      <span className="font-medium text-yna-main">
+        {r.isPinned ? <span className="mr-1 text-yna-point">[공지]</span> : null}
+        {r.title}
+      </span>
+    ),
+  },
+  {
+    title: '조회수',
+    key: 'views',
+    width: 90,
+    align: 'center',
+    ...sortProps<InvestArchive>(opts, 'views'),
+    render: (_, r) => r.views.toLocaleString('ko-KR'),
   },
 ];
 
@@ -178,7 +232,11 @@ export const partnerColumns = (opts?: DomainColumnOpts): Column<Partner>[] => [
   { title: '이메일', key: 'email', ellipsis: true, render: (_, r) => r.email || '-' },
 ];
 
-/** 프로젝트 고유 컬럼: 프로젝트명·유형·상태·우선순위·기간·담당자. */
+/**
+ * 프로젝트 고유 컬럼: 프로젝트명·기간·상태·담당자.
+ * M&A·신사업·사업 목록을 동일 구조로 통일(2026-06-21) — businessColumns 와 같은 순서/폭.
+ * 유형은 진입 메뉴로 고정, 우선순위는 폼/상세에서만 다루므로 목록 컬럼에서는 제외한다.
+ */
 export const projectColumns = (opts?: DomainColumnOpts): Column<Project>[] => [
   {
     title: '프로젝트명',
@@ -189,29 +247,17 @@ export const projectColumns = (opts?: DomainColumnOpts): Column<Project>[] => [
     render: (_, r) => <span className="font-medium text-yna-main">{r.name}</span>,
   },
   {
-    title: '유형',
-    key: 'project_type',
-    width: 130,
-    render: (_, r) => <ProjectTypeTag type={r.projectType} etc={r.projectTypeEtc} />,
+    title: '기간',
+    key: 'period',
+    width: 180,
+    ellipsis: true,
+    render: (_, r) => `${formatDate(r.startDate)} ~ ${r.endDate ? formatDate(r.endDate) : ''}`,
   },
   {
     title: '상태',
     key: 'stage',
     width: 90,
     render: (_, r) => <ProjectStageTag stage={r.stage} />,
-  },
-  {
-    title: '우선순위',
-    key: 'priority',
-    width: 90,
-    render: (_, r) => <ProjectPriorityTag priority={r.priority} />,
-  },
-  {
-    title: '기간',
-    key: 'period',
-    width: 180,
-    ellipsis: true,
-    render: (_, r) => `${formatDate(r.startDate)} ~ ${r.endDate ? formatDate(r.endDate) : ''}`,
   },
   {
     title: '담당자',

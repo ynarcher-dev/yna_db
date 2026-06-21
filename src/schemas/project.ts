@@ -4,7 +4,8 @@ import {
   PROJECT_STAGE_VALUES,
   PROJECT_TYPE_VALUES,
 } from '@/lib/labels';
-import { PROJECT_SECTIONS } from '@/lib/projectSections';
+import { PROJECT_SECTIONS, DEFAULT_PROJECT_SECTIONS } from '@/lib/projectSections';
+import type { ProjectType } from '@/types/database';
 
 /**
  * 프로젝트 등록/수정 검증 스키마 (10_projects.md 10.2, 17_conventions.md 3장).
@@ -28,6 +29,10 @@ export const projectSchema = z
     startDate: z.string().min(1, '개시일을 선택해 주세요.').max(10),
     /** 예상 종료일은 선택값(YYYY-MM-DD 또는 빈 문자열) */
     endDate: z.string().max(10),
+    /** 매출 — 0 이상 */
+    revenue: z.number({ invalid_type_error: '숫자로 입력해 주세요.' }).min(0, '0 이상이어야 합니다.'),
+    /** 이익 — 손실(음수) 허용 */
+    profit: z.number({ invalid_type_error: '숫자로 입력해 주세요.' }),
     description: z.string().max(2000, '설명은 2000자 이내로 입력해 주세요.'),
     sections: PROJECT_SECTIONS.schema,
   })
@@ -51,3 +56,20 @@ export const projectSchema = z
   });
 
 export type ProjectInput = z.infer<typeof projectSchema>;
+
+/** 빈 입력값. projectType 을 주면 그 유형으로 고정(M&A/신사업 분리 등록). */
+export function emptyProjectInput(projectType: ProjectType = 'm_and_a'): ProjectInput {
+  return {
+    name: '',
+    projectType,
+    projectTypeEtc: '',
+    stage: 'pending',
+    priority: 'medium',
+    startDate: '',
+    endDate: '',
+    revenue: 0,
+    profit: 0,
+    description: '',
+    sections: DEFAULT_PROJECT_SECTIONS,
+  };
+}

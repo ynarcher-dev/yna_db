@@ -2,12 +2,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
 import { mapStartupRow, type Startup, type StartupRow } from '@/types/startup';
 import { mapProjectRow, type Project, type ProjectRow } from '@/types/project';
-import { mapProgramRow, type Program, type ProgramRow } from '@/types/program';
-import type { ProgramManagerRole } from '@/types/database';
+import { mapBusinessRow, type Business, type BusinessRow } from '@/types/business';
+import type { BusinessManagerRole } from '@/types/database';
 
 /**
  * 심사역 기준 역방향(편집형) 데이터 훅 — 심사역 상세에서 담당/운영을 직접 매핑한다.
- * startup_managers·project_managers(역할 없음) / program_managers(역할 lead·operator)의 '쓰는 쪽'.
+ * startup_managers·project_managers(역할 없음) / business_managers(역할 lead·operator)의 '쓰는 쪽'.
  * 표시는 각 도메인 목록과 동일한 컬럼이 되도록, 목록과 같은 관계 임베드 후 map{Domain}Row 를 재사용한다.
  * 쓰기 RLS 는 기존 조인 정책(전 직원 공통)으로 이미 열려 있어 새 마이그레이션이 필요 없다.
  */
@@ -131,60 +131,60 @@ export function useManagerProjectMutations(managerId: string) {
   return { add, remove };
 }
 
-// ── 운영 프로그램 (program_managers, 역할 lead/operator) ──────────────────────
-const PROGRAM_TABLE = 'program_managers';
-export const managerProgramsKey = (managerId: string) =>
-  [PROGRAM_TABLE, 'by-manager', managerId] as const;
+// ── 운영 사업 (business_managers, 역할 lead/operator) ──────────────────────
+const BUSINESS_TABLE = 'business_managers';
+export const managerBusinessesKey = (managerId: string) =>
+  [BUSINESS_TABLE, 'by-manager', managerId] as const;
 
-export interface ManagerProgramRow {
+export interface ManagerBusinessRow {
   id: string;
-  role: ProgramManagerRole;
-  program: Program | null;
+  role: BusinessManagerRole;
+  business: Business | null;
 }
-interface ManagerProgramRaw {
+interface ManagerBusinessRaw {
   id: string;
-  role: ProgramManagerRole;
-  program: ProgramRow | null;
+  role: BusinessManagerRole;
+  business: BusinessRow | null;
 }
 
-export function useManagerPrograms(managerId: string | undefined) {
+export function useManagerBusinesses(managerId: string | undefined) {
   const query = useQuery({
-    queryKey: managerProgramsKey(managerId as string),
+    queryKey: managerBusinessesKey(managerId as string),
     enabled: Boolean(managerId),
-    queryFn: async (): Promise<ManagerProgramRow[]> => {
+    queryFn: async (): Promise<ManagerBusinessRow[]> => {
       const { data, error } = await supabase
-        .from(PROGRAM_TABLE)
-        .select('id, role, program:programs(*, program_managers(manager:managers(name)))')
+        .from(BUSINESS_TABLE)
+        .select('id, role, business:businesses(*, business_managers(manager:managers(name)))')
         .eq('manager_id', managerId as string)
         .order('created_at', { ascending: true });
       if (error) throw error;
-      return (data as unknown as ManagerProgramRaw[]).map((r) => ({
+      return (data as unknown as ManagerBusinessRaw[]).map((r) => ({
         id: r.id,
         role: r.role,
-        program: r.program ? mapProgramRow(r.program) : null,
+        business: r.business ? mapBusinessRow(r.business) : null,
       }));
     },
   });
   return { ...query, rows: query.data ?? [] };
 }
 
-export function useManagerProgramMutations(managerId: string) {
+export function useManagerBusinessMutations(managerId: string) {
   const qc = useQueryClient();
-  const invalidate = () => qc.invalidateQueries({ queryKey: managerProgramsKey(managerId) });
+  const invalidate = () => qc.invalidateQueries({ queryKey: managerBusinessesKey(managerId) });
 
   const add = useMutation({
-    mutationFn: async ({ programId, role }: { programId: string; role: ProgramManagerRole }) => {
+    mutationFn: async ({ businessId, role }: { businessId: string; role: BusinessManagerRole }) => {
       const { error } = await supabase
-        .from(PROGRAM_TABLE)
-        .insert({ manager_id: managerId, program_id: programId, role });
+        .from(BUSINESS_TABLE)
+        .insert({ manager_id: managerId, business_id: businessId, role });
       if (error) throw error;
     },
     onSuccess: invalidate,
   });
 
   const updateRole = useMutation({
-    mutationFn: async ({ id, role }: { id: string; role: ProgramManagerRole }) => {
-      const { error } = await supabase.from(PROGRAM_TABLE).update({ role }).eq('id', id);
+    mutationFn: async ({ id, role }: { id: string; role: BusinessManagerRole }) => {
+      const { error } = await supabase.from(BUSINESS_TABLE).update({ role }).eq('id', id);
       if (error) throw error;
     },
     onSuccess: invalidate,
@@ -192,7 +192,7 @@ export function useManagerProgramMutations(managerId: string) {
 
   const remove = useMutation({
     mutationFn: async (joinId: string) => {
-      const { error } = await supabase.from(PROGRAM_TABLE).delete().eq('id', joinId);
+      const { error } = await supabase.from(BUSINESS_TABLE).delete().eq('id', joinId);
       if (error) throw error;
     },
     onSuccess: invalidate,

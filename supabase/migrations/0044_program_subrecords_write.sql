@@ -1,7 +1,7 @@
 -- =============================================================================
 -- 0044_program_subrecords_write.sql — 프로그램 하위레코드 쓰기 RLS
 --   (program_managers·program_startups·program_events)
--- 출처: docs/7_programs.md 7.4 (작성·수정 Admin·Manager — 매핑·일정 등록 포함).
+-- 출처: docs/7_businesses.md 7.4 (작성·수정 Admin·Manager — 매핑·일정 등록 포함).
 -- 선행: 0001(세 테이블), 0002(RLS 활성화·역할 헬퍼), 0004(세 테이블 SELECT 정책),
 --       0003(program_events → system_events 동기화 트리거: SECURITY DEFINER 라 RLS 우회 기록).
 -- 권한: 조회=전 직원(0004), 추가/변경/해제(INSERT/UPDATE/DELETE)=전 직원(관리자·심사역).

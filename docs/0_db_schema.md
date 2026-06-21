@@ -16,13 +16,13 @@ erDiagram
     STARTUPS ||--o{ STARTUP_METRICS : "has history"
     STARTUPS ||--o{ STARTUP_FOLLOWUPS : "submits reports"
     STARTUPS ||--o{ FUND_INVESTMENTS : "receives investment"
-    STARTUPS ||--o{ PROGRAM_STARTUPS : "participates"
+    STARTUPS ||--o{ BUSINESS_STARTUPS : "participates"
     STARTUPS ||--o{ PROJECT_STARTUPS : "linked to"
 
-    PROGRAMS ||--o{ PROGRAM_STARTUPS : "includes"
-    PROGRAMS ||--o{ PROGRAM_MANAGERS : "operated by"
-    PROGRAMS ||--o{ PROGRAM_EVENTS : "schedules"
-    MANAGERS ||--o{ PROGRAM_MANAGERS : "operates"
+    BUSINESSES ||--o{ BUSINESS_STARTUPS : "includes"
+    BUSINESSES ||--o{ BUSINESS_MANAGERS : "operated by"
+    BUSINESSES ||--o{ BUSINESS_EVENTS : "schedules"
+    MANAGERS ||--o{ BUSINESS_MANAGERS : "operates"
 
     FUNDS ||--o{ CAPITAL_CALLS : "requests"
     FUNDS ||--o{ FUND_INVESTMENTS : "executes"
@@ -44,8 +44,8 @@ erDiagram
 
 > ⚠️ **베이스라인 안내**: 본 DDL 은 **초기 스키마(0001)** 기준입니다. 이후 마이그레이션(`0005`~)으로 추가/개편된 구조는 [PROGRESS.md](PROGRESS.md) 마이그레이션 표가 정본입니다. 특히 주요 구조 변경(2026-06-17):
 > * **소속 계층 개편 — 회사 > 그룹 > 팀**(`0050`~`0053`): `departments`에 `company`(회사, 고정 3종) 추가, `teams`(팀, 소속 단위) 신설, `managers.team_id` 추가(팀 변경 시 `department_id` 자동 동기화). 상세 [11_departments.md](11_departments.md).
-> * **담당자(다대다) 표준화**: `startup_managers`(`0038`)·`project_managers`(`0034`)·`fund_managers`(`0047`) 조인 도입(프로그램은 `program_managers` 기존). 책임자(`created_by`)는 트리거로 담당자에 자동 편입·해제 불가(`0048`/`0049`). 상세 [PATTERNS.md](PATTERNS.md) 17장.
-> * **양방향 연계**(`0046` `program_partners` 등) 및 각 도메인 `created_by`·`updated_at`·`sections` 메타 컬럼 추가. 아래 DDL 에는 미반영.
+> * **담당자(다대다) 표준화**: `startup_managers`(`0038`)·`project_managers`(`0034`)·`fund_managers`(`0047`) 조인 도입(사업은 `business_managers` 기존). 책임자(`created_by`)는 트리거로 담당자에 자동 편입·해제 불가(`0048`/`0049`). 상세 [PATTERNS.md](PATTERNS.md) 17장.
+> * **양방향 연계**(`0046` `business_partners` 등) 및 각 도메인 `created_by`·`updated_at`·`sections` 메타 컬럼 추가. 아래 DDL 에는 미반영.
 
 ```sql
 -- 시스템 역할은 인사 직급(position)과 분리한다.
@@ -134,8 +134,8 @@ CREATE TABLE public.startup_followups (
     )
 );
 
--- 6. 프로그램 테이블 (programs)
-CREATE TABLE public.programs (
+-- 6. 사업 테이블 (businesses)
+CREATE TABLE public.businesses (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     name VARCHAR(150) NOT NULL,
     generation INTEGER DEFAULT 1 NOT NULL,
@@ -151,32 +151,32 @@ CREATE TABLE public.programs (
     CHECK (budget >= 0)
 );
 
--- 7. 프로그램 참여 매핑 조인 테이블 (program_startups)
-CREATE TABLE public.program_startups (
+-- 7. 사업 참여 매핑 조인 테이블 (business_startups)
+CREATE TABLE public.business_startups (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    program_id UUID REFERENCES public.programs(id) ON DELETE CASCADE NOT NULL,
+    business_id UUID REFERENCES public.businesses(id) ON DELETE CASCADE NOT NULL,
     startup_id UUID REFERENCES public.startups(id) ON DELETE CASCADE NOT NULL,
     status VARCHAR(30) DEFAULT 'applied' NOT NULL, -- applied, screening, selected, completed, dropped
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-    UNIQUE (program_id, startup_id),
+    UNIQUE (business_id, startup_id),
     CHECK (status IN ('applied', 'screening', 'selected', 'completed', 'dropped'))
 );
 
--- 8. 프로그램 운영 심사역 매핑 테이블 (program_managers)
-CREATE TABLE public.program_managers (
+-- 8. 사업 운영 심사역 매핑 테이블 (business_managers)
+CREATE TABLE public.business_managers (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    program_id UUID REFERENCES public.programs(id) ON DELETE CASCADE NOT NULL,
+    business_id UUID REFERENCES public.businesses(id) ON DELETE CASCADE NOT NULL,
     manager_id UUID REFERENCES public.managers(id) ON DELETE RESTRICT NOT NULL,
     role VARCHAR(30) DEFAULT 'operator' NOT NULL, -- lead, operator
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-    UNIQUE (program_id, manager_id),
+    UNIQUE (business_id, manager_id),
     CHECK (role IN ('lead', 'operator'))
 );
 
--- 9. 프로그램 세부 일정 테이블 (program_events)
-CREATE TABLE public.program_events (
+-- 9. 사업 세부 일정 테이블 (business_events)
+CREATE TABLE public.business_events (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    program_id UUID REFERENCES public.programs(id) ON DELETE CASCADE NOT NULL,
+    business_id UUID REFERENCES public.businesses(id) ON DELETE CASCADE NOT NULL,
     title VARCHAR(150) NOT NULL,
     event_type VARCHAR(30) NOT NULL, -- recruitment, demoday, networking, event
     event_date DATE NOT NULL,
@@ -186,19 +186,19 @@ CREATE TABLE public.program_events (
     CHECK (event_type IN ('recruitment', 'demoday', 'networking', 'meeting', 'ir', 'event'))
 );
 
--- 대시보드 공통 일정. 프로그램 외 협력 미팅, IR, 사내 일정을 함께 표현한다.
+-- 대시보드 공통 일정. 사업 외 협력 미팅, IR, 사내 일정을 함께 표현한다.
 CREATE TABLE public.system_events (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     title VARCHAR(150) NOT NULL,
     event_type VARCHAR(30) NOT NULL,
     event_date DATE NOT NULL,
-    source_type VARCHAR(30), -- program, partner, startup, project, manual
+    source_type VARCHAR(30), -- business, partner, startup, project, manual
     source_id UUID,
     description TEXT,
     created_by UUID REFERENCES public.managers(id) ON DELETE SET NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     CHECK (event_type IN ('recruitment', 'demoday', 'networking', 'meeting', 'ir', 'event')),
-    -- program_events → system_events 동기화 트리거(16_aggregations.md 7장)의 ON CONFLICT 대상.
+    -- business_events → system_events 동기화 트리거(16_aggregations.md 7장)의 ON CONFLICT 대상.
     -- 수동 일정은 source_id가 NULL이며, NULL은 UNIQUE에서 서로 충돌하지 않는다.
     UNIQUE (source_type, source_id)
 );
@@ -385,10 +385,10 @@ ALTER TABLE public.managers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.startups ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.startup_metrics ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.startup_followups ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.programs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.program_startups ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.program_managers ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.program_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.businesses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.business_startups ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.business_managers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.business_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.system_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.funds ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.capital_calls ENABLE ROW LEVEL SECURITY;

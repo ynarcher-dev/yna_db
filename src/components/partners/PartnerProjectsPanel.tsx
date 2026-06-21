@@ -14,17 +14,47 @@ import { ProjectFormDrawer } from '@/components/projects/ProjectFormDrawer';
 import { useAppToast } from '@/components/common/useAppToast';
 import { EmptyState } from '@/components/common/EmptyState';
 import { projectColumns } from '@/lib/listColumns';
+import { PROJECT_DOMAINS, type ProjectDomain } from '@/views/projects/projectDomain';
 import type { Project } from '@/types/project';
 
 /**
  * 협력사 상세 "참여 프로젝트" 역방향 편집 패널 (project_partners '쓰는 쪽', 0036 쓰기 RLS).
- * 프로젝트 목록과 동일한 표 형태 + 연동 해제. (a) 기존 프로젝트 연결 또는 (b) 신규 생성·즉시 매핑.
+ * M&A·신사업은 상호 배타적 도메인이라 유형별 카드로 분리한다 — 각 카드에서 해당 유형의
+ * (a) 기존 프로젝트 연결 또는 (b) 신규 생성·즉시 매핑을 한다.
  */
 export function PartnerProjectsPanel({ partnerId }: { partnerId: string }) {
+  const { rows, isLoading } = usePartnerProjects(partnerId);
+
+  return (
+    <>
+      {PROJECT_DOMAINS.map((domain) => (
+        <PartnerProjectsTypeSection
+          key={domain.projectType}
+          partnerId={partnerId}
+          domain={domain}
+          rows={rows.filter((r) => r.project?.projectType === domain.projectType)}
+          isLoading={isLoading}
+        />
+      ))}
+    </>
+  );
+}
+
+/** 한 유형(M&A 또는 신사업)의 연동 표·후보 Select·신규 생성 Drawer를 담는 카드. */
+function PartnerProjectsTypeSection({
+  partnerId,
+  domain,
+  rows,
+  isLoading,
+}: {
+  partnerId: string;
+  domain: ProjectDomain;
+  rows: PartnerProjectRow[];
+  isLoading: boolean;
+}) {
   const toast = useAppToast();
   const navigate = useNavigate();
-  const { rows, isLoading } = usePartnerProjects(partnerId);
-  const { data: projectOptions = [] } = useProjectOptions();
+  const { data: projectOptions = [] } = useProjectOptions(domain.projectType);
   const { add, remove } = usePartnerProjectMutations(partnerId);
   const [selected, setSelected] = useState<string | undefined>();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -54,7 +84,9 @@ export function PartnerProjectsPanel({ partnerId }: { partnerId: string }) {
   const handleAdd = (projectId: string, isNew = false) => {
     add.mutate(projectId, {
       onSuccess: () => {
-        toast.success(isNew ? '새 프로젝트가 생성·연결되었습니다.' : '참여 프로젝트가 추가되었습니다.');
+        toast.success(
+          isNew ? `새 ${domain.shortLabel} 프로젝트가 생성·연결되었습니다.` : '참여 프로젝트가 추가되었습니다.',
+        );
         setSelected(undefined);
       },
       onError: (err) =>
@@ -78,7 +110,7 @@ export function PartnerProjectsPanel({ partnerId }: { partnerId: string }) {
     });
   };
 
-  // 프로젝트 목록과 동일한 고유 컬럼 + 연동해제 컬럼.
+  // 프로젝트 목록과 동일한 고유 컬럼(프로젝트명·기간·상태·담당자) + 연동해제 컬럼.
   const columns: TableProps<Project>['columns'] = [
     ...projectColumns(),
     {
@@ -108,12 +140,12 @@ export function PartnerProjectsPanel({ partnerId }: { partnerId: string }) {
   return (
     <div className="rounded-lg border border-yna-border bg-white p-6">
       <h2 className="mb-3 text-base font-semibold text-yna-main">
-        참여 프로젝트
+        참여 {domain.shortLabel}
         <span className="ml-1 text-xs font-normal text-yna-point">(연동)</span>
       </h2>
 
       {rows.length === 0 && !isLoading ? (
-        <EmptyState message="참여한 프로젝트가 없습니다." />
+        <EmptyState message={`참여한 ${domain.shortLabel} 프로젝트가 없습니다.`} />
       ) : (
         <Table<Project>
           rowKey="id"
@@ -124,7 +156,7 @@ export function PartnerProjectsPanel({ partnerId }: { partnerId: string }) {
           dataSource={projects}
           pagination={false}
           onRow={(p) => ({
-            onClick: () => navigate(`/projects/${p.id}`),
+            onClick: () => navigate(`${domain.basePath}/${p.id}`),
             style: { cursor: 'pointer' },
           })}
         />
@@ -136,7 +168,7 @@ export function PartnerProjectsPanel({ partnerId }: { partnerId: string }) {
           allowClear
           optionFilterProp="label"
           className="w-52"
-          placeholder="프로젝트 선택"
+          placeholder={`${domain.shortLabel} 프로젝트 선택`}
           options={availableOptions}
           value={selected}
           onChange={(v?: string) => setSelected(v)}
@@ -158,6 +190,7 @@ export function PartnerProjectsPanel({ partnerId }: { partnerId: string }) {
 
       <ProjectFormDrawer
         open={drawerOpen}
+        projectType={domain.projectType}
         onClose={() => setDrawerOpen(false)}
         onSaved={(projectId) => handleAdd(projectId, true)}
       />

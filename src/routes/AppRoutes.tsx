@@ -14,12 +14,18 @@ import { ManagersListView } from '@/views/managers/ManagersListView';
 import { ManagerDetailView } from '@/views/managers/ManagerDetailView';
 import { StartupsListView } from '@/views/startups/StartupsListView';
 import { StartupDetailView } from '@/views/startups/StartupDetailView';
-import { ProjectsListView } from '@/views/projects/ProjectsListView';
-import { ProjectDetailView } from '@/views/projects/ProjectDetailView';
+import { MaProjectsListView } from '@/views/projects/MaProjectsListView';
+import { MaProjectDetailView } from '@/views/projects/MaProjectDetailView';
+import { NewBizProjectsListView } from '@/views/projects/NewBizProjectsListView';
+import { NewBizProjectDetailView } from '@/views/projects/NewBizProjectDetailView';
 import { FundsListView } from '@/views/funds/FundsListView';
 import { FundDetailView } from '@/views/funds/FundDetailView';
-import { ProgramsListView } from '@/views/programs/ProgramsListView';
-import { ProgramDetailView } from '@/views/programs/ProgramDetailView';
+import { BusinessesListView } from '@/views/businesses/BusinessesListView';
+import { BusinessDetailView } from '@/views/businesses/BusinessDetailView';
+import { MatchingProgramsListView } from '@/views/matchingPrograms/MatchingProgramsListView';
+import { MatchingProgramDetailView } from '@/views/matchingPrograms/MatchingProgramDetailView';
+import { InvestArchivesListView } from '@/views/investArchives/InvestArchivesListView';
+import { InvestArchiveDetailView } from '@/views/investArchives/InvestArchiveDetailView';
 import { NotFound } from '@/views/NotFound';
 import { LoginView } from '@/views/auth/LoginView';
 import { OnboardingPasswordView } from '@/views/auth/OnboardingPasswordView';
@@ -58,12 +64,18 @@ export function AppRoutes() {
           <Route path="/managers/:id" element={<ManagerDetailView />} />
           <Route path="/startups" element={<StartupsListView />} />
           <Route path="/startups/:id" element={<StartupDetailView />} />
-          <Route path="/projects" element={<ProjectsListView />} />
-          <Route path="/projects/:id" element={<ProjectDetailView />} />
+          <Route path="/ma-projects" element={<MaProjectsListView />} />
+          <Route path="/ma-projects/:id" element={<MaProjectDetailView />} />
+          <Route path="/new-biz-projects" element={<NewBizProjectsListView />} />
+          <Route path="/new-biz-projects/:id" element={<NewBizProjectDetailView />} />
           <Route path="/funds" element={<FundsListView />} />
           <Route path="/funds/:id" element={<FundDetailView />} />
-          <Route path="/programs" element={<ProgramsListView />} />
-          <Route path="/programs/:id" element={<ProgramDetailView />} />
+          <Route path="/businesses" element={<BusinessesListView />} />
+          <Route path="/businesses/:id" element={<BusinessDetailView />} />
+          <Route path="/matching-programs" element={<MatchingProgramsListView />} />
+          <Route path="/matching-programs/:id" element={<MatchingProgramDetailView />} />
+          <Route path="/invest-archives" element={<InvestArchivesListView />} />
+          <Route path="/invest-archives/:id" element={<InvestArchiveDetailView />} />
 
           {/* 나머지 도메인은 아직 플레이스홀더 (Phase 3·4 에서 대체) */}
           {NAV_ITEMS.filter(
@@ -75,9 +87,12 @@ export function AppRoutes() {
                 '/departments',
                 '/managers',
                 '/startups',
-                '/projects',
+                '/ma-projects',
+                '/new-biz-projects',
                 '/funds',
-                '/programs',
+                '/businesses',
+                '/matching-programs',
+                '/invest-archives',
               ].includes(item.path),
           ).map(
             (item) => (

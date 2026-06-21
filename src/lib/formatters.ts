@@ -23,6 +23,23 @@ export function formatKRWShort(value: number | string | null | undefined): strin
   return `${num.toLocaleString('ko-KR')}원`;
 }
 
+/**
+ * 백만원 단위 포맷 — 금액(원)을 1,000,000 으로 나눠 반올림한 정수를 천단위 콤마로 표기한다.
+ * 매출·이익·예산을 목록/상세에서 일괄 백만원 단위로 보여주기 위해 사용한다(발주자 확정 2026-06-21).
+ * suffix=true 면 '백만원' 단위를 덧붙이고(상세 카드), false 면 숫자만 낸다(목록 — 헤더에 '(백만)' 표기).
+ * 예: 1,234,567,890 → "1,235백만원" / -50,000,000 → "-50백만원" / 0 → "0" / 빈값 → "-".
+ */
+export function formatKRWMillions(
+  value: number | string | null | undefined,
+  suffix = true,
+): string {
+  if (value === null || value === undefined || value === '') return '-';
+  const num = typeof value === 'string' ? Number(value) : value;
+  if (Number.isNaN(num)) return '-';
+  const millions = Math.round(num / 1e6);
+  return `${millions.toLocaleString('ko-KR')}${suffix ? '백만원' : ''}`;
+}
+
 /** 날짜 포맷 (기본 YYYY.MM.DD) */
 export function formatDate(value: string | Date | null | undefined, pattern = 'YYYY.MM.DD'): string {
   if (!value) return '-';

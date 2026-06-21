@@ -21,7 +21,7 @@ import { formatDate } from '@/lib/formatters';
  * 심사역 상세 = 본인일 경우 마이페이지 (5_managers.md 5.3, 14_auth.md 14.5).
  * 고유 블록: 프로필 카드 + 약력(학력/경력).
  * 수정: Admin(전체) 또는 본인(허용 컬럼 RPC). 삭제(소프트): Admin 만, 본인 제외(잠금 방지).
- * 연계 블록(담당 스타트업/프로그램/프로젝트)은 Phase 4 에서 연결한다.
+ * 연계 블록(담당 스타트업/사업/프로젝트)은 Phase 4 에서 연결한다.
  */
 export function ManagerDetailView() {
   const { id } = useParams<{ id: string }>();
@@ -155,7 +155,7 @@ export function ManagerDetailView() {
         />
       ) : null}
 
-      {/* 역방향 연계: 담당 스타트업·프로젝트·운영 프로그램 (각 섹션 토글로 표시/숨김) */}
+      {/* 역방향 연계: 담당 스타트업·프로젝트·운영 사업 (각 섹션 토글로 표시/숨김) */}
       <ManagerRelatedBlocks managerId={manager.id} sections={manager.sections} />
 
       {/* 첨부파일 (전 도메인 공통 카드) — 항상 최하단 */}

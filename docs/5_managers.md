@@ -34,7 +34,7 @@
 *   **소속 연계(회사·그룹·팀)**: `team_id`(`teams.id`) -> 소속 **팀**. 팀의 그룹(`departments`)·회사(`departments.company`)를 임베드로 함께 조회. 팀이 없으면 그룹/회사 미표기. (소속 계층 [11_departments.md](11_departments.md))
 *   **담당 스타트업 연계(다대다)**: `startup_managers` 조인(`manager_id`) -> 담당 스타트업 목록. (초기 단수 `startups.manager_id`는 앱 미사용)
 *   **담당 프로젝트 연계(다대다)**: `project_managers` 조인(`manager_id`) -> 담당 M&A/신사업 프로젝트. (초기 단수 `projects.manager_id`는 앱 미사용)
-*   **운영 프로그램 연계(다대다)**: `program_managers` 조인(`manager_id`, `role`) -> 운영 중인 배치 프로그램 + 운영 역할(운영총괄/운영담당).
+*   **운영 사업 연계(다대다)**: `business_managers` 조인(`manager_id`, `role`) -> 운영 중인 배치 사업 + 운영 역할(운영총괄/운영담당).
 *   **책임자 자동 편입**: 본인이 책임자(`created_by`)인 게시글의 담당자 조인에는 트리거로 자동 편입되며 해제 불가([PATTERNS.md](PATTERNS.md) 17장).
 
 ### 🏷️ TypeScript Interface: `Manager`
@@ -84,7 +84,7 @@ interface Manager {
 *   **역방향 연계(편집형) 패널** — 상세 하단에 3블록. 각각 해당 도메인 **목록과 동일한 표 형태**(메타 5컬럼 제외) + 연동 카드 표시(테두리 회색 통일·제목 옆 빨간 `(연동)` 라벨). 행 클릭=상대 상세 이동, 끝열=**연동 해제**(조인 행만 제거). **추가**(기존 레코드 연결)·**생성**(신규 레코드 등록 후 즉시 매핑) 지원. (PATTERNS 18·18.1, [useManagerRelations.ts](../src/hooks/useManagerRelations.ts))
     *   **담당 스타트업 (연동)** — `startup_managers`(역할 없음). 스타트업 목록 컬럼.
     *   **담당 프로젝트 (연동)** — `project_managers`(역할 없음). 프로젝트 목록 컬럼.
-    *   **운영 프로그램 (연동)** — `program_managers`(역할 운영총괄/운영담당, 행에서 인라인 변경). 프로그램 목록 컬럼.
+    *   **운영 사업 (연동)** — `business_managers`(역할 운영총괄/운영담당, 행에서 인라인 변경). 사업 목록 컬럼.
 
 ---
 

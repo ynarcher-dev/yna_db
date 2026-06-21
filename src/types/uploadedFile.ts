@@ -60,7 +60,9 @@ export type AttachmentEntityType =
   | 'department'
   | 'project'
   | 'fund'
-  | 'program';
+  | 'business'
+  | 'matching_program'
+  | 'invest_archive';
 
 /** 한 레코드에 붙은 첨부파일 1건 (uploaded_files purpose='attachment' 행). */
 export interface EntityFile {

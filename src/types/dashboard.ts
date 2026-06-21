@@ -8,12 +8,15 @@ export interface DashboardMetrics {
   totalManagers: number;
   totalStartups: number;
   totalPortfolioValuation: number;
-  activePrograms: number;
+  activeBusinesses: number;
   totalAum: number;
   averageFundExhaustionRate: number;
   totalExperts: number;
   averageMentoringRating: number;
-  activeProjects: number;
+  /** 진행 중 M&A 프로젝트 수 (project_type='m_and_a') */
+  activeMaProjects: number;
+  /** 진행 중 신사업 프로젝트 수 (project_type='new_business') */
+  activeNewBizProjects: number;
   reportSubmissionRate: number;
   totalDepartments: number;
   totalPartners: number;

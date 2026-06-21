@@ -6,11 +6,11 @@ import { defineSections, type SectionVisibility } from './sectionVisibility';
  * 'Phase 4 공동 참여 프로젝트' Alert 는 플레이스홀더라 토글 대상이 아니다.
  */
 export const PARTNER_SECTIONS = defineSections(
-  ['interactionLog', 'projects', 'programs', 'attachments'] as const,
+  ['interactionLog', 'projects', 'businesses', 'attachments'] as const,
   {
     interactionLog: '교류 협력 이력',
     projects: '참여 프로젝트 (연동)',
-    programs: '참여 프로그램 (연동)',
+    businesses: '참여 사업 (연동)',
     attachments: '첨부파일',
   },
 );

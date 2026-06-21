@@ -20,18 +20,24 @@ export type ProjectType = 'm_and_a' | 'new_business' | 'other';
 /** 프로젝트 우선순위 (projects.priority) */
 export type ProjectPriority = 'high' | 'medium' | 'low';
 
-/** 프로그램 참여 상태 (program_startups.status) */
-export type ProgramStartupStatus =
+/**
+ * 사업 진행 상태 (businesses.status, 0056). 발주자 확정(2026-06-21):
+ * 사업·M&A·신사업 목록을 동일 구조로 통일하기 위해 projects.stage 와 동일한 5단계를 쓴다.
+ */
+export type BusinessStatus = 'pending' | 'in_progress' | 'completed' | 'suspended' | 'canceled';
+
+/** 사업 참여 상태 (business_startups.status) */
+export type BusinessStartupStatus =
   | 'applied'
   | 'screening'
   | 'selected'
   | 'completed'
   | 'dropped';
 
-/** 프로그램 운영 심사역 역할 (program_managers.role) */
-export type ProgramManagerRole = 'lead' | 'operator';
+/** 사업 운영 심사역 역할 (business_managers.role) */
+export type BusinessManagerRole = 'lead' | 'operator';
 
-/** 공통 일정 유형 (program_events / system_events) */
+/** 공통 일정 유형 (business_events / system_events) */
 export type EventType = 'recruitment' | 'demoday' | 'networking' | 'meeting' | 'ir' | 'event';
 
 /** 전문가 유형 (experts.expert_type) */
@@ -48,6 +54,15 @@ export type ReportType = 'quarterly' | 'semiannual' | 'annual' | 'interim' | 'ri
 
 /** 투자자 구분 (startup_metrics.investor_type) — 자사/외부 */
 export type InvestorType = 'internal' | 'external';
+
+/** 매칭 프로그램 상태 (matching_programs.status) — 모집중/진행중 · 마감 (21_matching_programs.md) */
+export type MatchingProgramStatus = 'active' | 'closed';
+
+/** 매칭 신청/연계 진행 상태 (matching_applications.status) (21_matching_programs.md) */
+export type MatchingApplicationStatus = 'applied' | 'recommended' | 'selected' | 'rejected';
+
+/** 투자 자료실 카테고리 (invest_archives.category) (22_invest_archives.md) */
+export type ArchiveCategory = 'template' | 'report' | 'legal' | 'etc';
 
 /** 업로드 파일 용도 (uploaded_files.purpose) (15_system_schema.md 4장) */
 export type FilePurpose =

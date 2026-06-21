@@ -12,14 +12,16 @@ React Router 기준 URL 체계입니다. 목록은 복수형, 상세는 `/:id`, 
 | :--- | :--- | :--- |
 | 로그인/온보딩 | `/login`, `/onboarding/password`, `/reset-password` | [14_auth.md](14_auth.md) |
 | 대시보드 | `/` | 9대 도메인 요약 |
-| 심사역 | `/managers`, `/managers/:id?tab=startups\|programs\|projects` | |
+| 심사역 | `/managers`, `/managers/:id?tab=startups\|businesses\|projects` | |
 | 스타트업 | `/startups`, `/startups/:id?tab=metrics\|followups\|relations` | |
-| 프로그램 | `/programs`, `/programs/:id?tab=calendar\|managers\|startups` | |
+| 사업 | `/businesses`, `/businesses/:id?tab=calendar\|managers\|startups` | |
 | 펀드 | `/funds`, `/funds/:id?tab=calls\|investments` | |
 | 전문가 | `/experts`, `/experts/:id` | |
 | 프로젝트 | `/projects`(칸반), `/projects/:id?tab=mapping\|timeline` | |
 | 소속 | `/departments`, `/departments/:id` | |
 | 협력사 | `/partners`, `/partners/:id` | |
+| 매칭 프로그램 | `/matching-programs`, `/matching-programs/:id` | [21_matching_programs.md](21_matching_programs.md) |
+| 투자 자료실 | `/invest-archives`, `/invest-archives/:id` | [22_invest_archives.md](22_invest_archives.md) |
 | AI 파트너 | `/assistant`, `/assistant/:sessionId` | [3_smart_features.md](3_smart_features.md) |
 | 계정 관리 | `/admin/accounts` | Admin 전용 |
 
@@ -189,7 +191,7 @@ interface BasePerson {
 | 전문가 | 약력·소개·멘토링 만족도·**첨부파일**(4) | ✅ |
 | 심사역 | 약력·소개·**첨부파일**(3, 토글은 **Admin 전용**) | ✅ |
 | 소속(부서) | **첨부파일**(1) | ✅ (Phase 4 부서원/투자성과 블록 추가 시 키 확장) |
-| 프로그램·펀드·프로젝트 | (상세 미구현) | **상세 구현 시 본 규약 + 첨부파일 카드 포함** |
+| 사업·펀드·프로젝트 | (상세 미구현) | **상세 구현 시 본 규약 + 첨부파일 카드 포함** |
 
 * **첨부파일 카드**는 위 모든 도메인에 공통으로 들어가며(전 도메인 상세), 다른 섹션과 동일하게 `sections.attachments` 토글로 표시/숨김합니다. 카드 구현 자체는 [PATTERNS.md](PATTERNS.md) 16장(공통 `EntityFilesBlock`).
 

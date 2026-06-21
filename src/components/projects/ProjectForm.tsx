@@ -1,14 +1,14 @@
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Input, Select, DatePicker, Button } from 'antd';
+import { Input, Select, DatePicker, InputNumber, Button } from 'antd';
 import dayjs from 'dayjs';
-import { projectSchema, type ProjectInput } from '@/schemas/project';
+import { projectSchema, emptyProjectInput, type ProjectInput } from '@/schemas/project';
 import {
   PROJECT_PRIORITY_OPTIONS,
   PROJECT_STAGE_OPTIONS,
   PROJECT_TYPE_OPTIONS,
 } from '@/lib/labels';
-import { PROJECT_SECTIONS, DEFAULT_PROJECT_SECTIONS } from '@/lib/projectSections';
+import { PROJECT_SECTIONS } from '@/lib/projectSections';
 import { SectionVisibilityField } from '@/components/common/SectionVisibilityField';
 
 /**
@@ -16,22 +16,12 @@ import { SectionVisibilityField } from '@/components/common/SectionVisibilityFie
  * 등록·수정 공용. 기본 딜 정보(프로젝트명·유형·단계·우선순위·기간·설명)만 다룬다.
  * 담당자(다대다)·매칭 스타트업/협력사는 상세의 매핑 패널에서 별도로 관리한다.
  */
-const EMPTY: ProjectInput = {
-  name: '',
-  projectType: 'm_and_a',
-  projectTypeEtc: '',
-  stage: 'pending',
-  priority: 'medium',
-  startDate: '',
-  endDate: '',
-  description: '',
-  sections: DEFAULT_PROJECT_SECTIONS,
-};
-
 interface ProjectFormProps {
   defaultValues?: ProjectInput;
   submitting?: boolean;
   submitLabel: string;
+  /** true 면 유형 입력란을 숨긴다(분리 페이지에서 유형 고정). 기존 defaultValues 유형을 그대로 유지. */
+  lockType?: boolean;
   onSubmit: (values: ProjectInput) => void;
   onCancel: () => void;
 }
@@ -44,6 +34,7 @@ export function ProjectForm({
   defaultValues,
   submitting,
   submitLabel,
+  lockType = false,
   onSubmit,
   onCancel,
 }: ProjectFormProps) {
@@ -55,9 +46,23 @@ export function ProjectForm({
   } = useForm<ProjectInput>({
     resolver: zodResolver(projectSchema),
     mode: 'onBlur',
-    defaultValues: defaultValues ?? EMPTY,
+    defaultValues: defaultValues ?? emptyProjectInput(),
   });
   const isEtcType = watch('projectType') === 'other';
+
+  const priorityField = (
+    <div>
+      <label className="mb-1 block text-sm text-yna-main">우선순위 *</label>
+      <Controller
+        name="priority"
+        control={control}
+        render={({ field }) => (
+          <Select {...field} className="w-full" options={PROJECT_PRIORITY_OPTIONS} />
+        )}
+      />
+      <FieldError message={errors.priority?.message} />
+    </div>
+  );
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
@@ -71,32 +76,27 @@ export function ProjectForm({
         <FieldError message={errors.name?.message} />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="mb-1 block text-sm text-yna-main">유형 *</label>
-          <Controller
-            name="projectType"
-            control={control}
-            render={({ field }) => (
-              <Select {...field} className="w-full" options={PROJECT_TYPE_OPTIONS} />
-            )}
-          />
-          <FieldError message={errors.projectType?.message} />
+      {/* 분리 페이지(lockType)에서는 유형을 진입 메뉴로 고정하므로 입력란을 숨긴다. */}
+      {lockType ? (
+        priorityField
+      ) : (
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="mb-1 block text-sm text-yna-main">유형 *</label>
+            <Controller
+              name="projectType"
+              control={control}
+              render={({ field }) => (
+                <Select {...field} className="w-full" options={PROJECT_TYPE_OPTIONS} />
+              )}
+            />
+            <FieldError message={errors.projectType?.message} />
+          </div>
+          {priorityField}
         </div>
-        <div>
-          <label className="mb-1 block text-sm text-yna-main">우선순위 *</label>
-          <Controller
-            name="priority"
-            control={control}
-            render={({ field }) => (
-              <Select {...field} className="w-full" options={PROJECT_PRIORITY_OPTIONS} />
-            )}
-          />
-          <FieldError message={errors.priority?.message} />
-        </div>
-      </div>
+      )}
 
-      {isEtcType ? (
+      {!lockType && isEtcType ? (
         <div>
           <label className="mb-1 block text-sm text-yna-main">기타 유형 *</label>
           <Controller
@@ -154,6 +154,48 @@ export function ProjectForm({
             )}
           />
           <FieldError message={errors.endDate?.message} />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="mb-1 block text-sm text-yna-main">매출 *</label>
+          <Controller
+            name="revenue"
+            control={control}
+            render={({ field }) => (
+              <InputNumber
+                className="w-full"
+                min={0}
+                value={field.value}
+                onChange={(v) => field.onChange(typeof v === 'number' ? v : 0)}
+                onBlur={field.onBlur}
+                formatter={(v) => `${v ?? ''}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                parser={(v) => Number((v ?? '').replace(/,/g, '')) || 0}
+                addonAfter="원"
+              />
+            )}
+          />
+          <FieldError message={errors.revenue?.message} />
+        </div>
+        <div>
+          <label className="mb-1 block text-sm text-yna-main">이익 *</label>
+          <Controller
+            name="profit"
+            control={control}
+            render={({ field }) => (
+              <InputNumber
+                className="w-full"
+                value={field.value}
+                onChange={(v) => field.onChange(typeof v === 'number' ? v : 0)}
+                onBlur={field.onBlur}
+                formatter={(v) => `${v ?? ''}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                parser={(v) => Number((v ?? '').replace(/,/g, '')) || 0}
+                addonAfter="원"
+              />
+            )}
+          />
+          <FieldError message={errors.profit?.message} />
         </div>
       </div>
 

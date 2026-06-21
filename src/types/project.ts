@@ -19,6 +19,10 @@ export interface Project {
   startDate: string;
   /** 예상 종료일 (YYYY-MM-DD). 없으면 빈 문자열 */
   endDate: string;
+  /** 매출 (원, 0 이상) */
+  revenue: number;
+  /** 이익 (원, 실제 회사 유입액. 손실이면 음수) */
+  profit: number;
   /** 딜 상세 설명 */
   description: string;
   deletedAt?: string;
@@ -45,6 +49,8 @@ export interface ProjectRow {
   priority: ProjectPriority;
   start_date: string;
   end_date: string | null;
+  revenue: number | string;
+  profit: number | string;
   description: string | null;
   deleted_at: string | null;
   created_at: string;
@@ -66,6 +72,8 @@ export function mapProjectRow(row: ProjectRow): Project {
     priority: row.priority,
     startDate: row.start_date,
     endDate: row.end_date ?? '',
+    revenue: Number(row.revenue) || 0,
+    profit: Number(row.profit) || 0,
     description: row.description ?? '',
     deletedAt: row.deleted_at ?? undefined,
     createdAt: row.created_at,

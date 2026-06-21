@@ -5,9 +5,12 @@ import type {
   ExpertType,
   InvestorType,
   ManagementStatus,
+  MatchingApplicationStatus,
+  MatchingProgramStatus,
   PartnerType,
-  ProgramManagerRole,
-  ProgramStartupStatus,
+  BusinessManagerRole,
+  BusinessStartupStatus,
+  BusinessStatus,
   ProjectPriority,
   ProjectStage,
   ProjectType,
@@ -334,26 +337,59 @@ export const PROJECT_PRIORITY_COLOR: Record<ProjectPriority, BadgeTone> = {
   low: 'neutral',
 };
 
-/** 프로그램 운영 심사역 역할 (program_managers.role) */
-export const PROGRAM_MANAGER_ROLE_VALUES = ['lead', 'operator'] as const;
+/**
+ * 사업 진행 상태 (businesses.status, 0056). 프로젝트(projects.stage)와 동일한 5단계 —
+ * 사업·M&A·신사업 목록 '상태' 컬럼을 동일하게 렌더하기 위해 라벨/톤을 맞춘다.
+ */
+export const BUSINESS_STATUS_VALUES = [
+  'pending',
+  'in_progress',
+  'completed',
+  'suspended',
+  'canceled',
+] as const;
 
-export const PROGRAM_MANAGER_ROLE_LABEL: Record<ProgramManagerRole, string> = {
+export const BUSINESS_STATUS_LABEL: Record<BusinessStatus, string> = {
+  pending: '대기',
+  in_progress: '진행중',
+  completed: '완료',
+  suspended: '중단',
+  canceled: '취소',
+};
+
+export const BUSINESS_STATUS_OPTIONS = (Object.keys(BUSINESS_STATUS_LABEL) as BusinessStatus[]).map(
+  (value) => ({ value, label: BUSINESS_STATUS_LABEL[value] }),
+);
+
+/** 진행 상태별 톤 — 진행중=green, 완료·취소(종료)=blue, 대기·중단(중간)=gold. (PROJECT_STAGE 와 동일) */
+export const BUSINESS_STATUS_COLOR: Record<BusinessStatus, BadgeTone> = {
+  pending: 'gold',
+  in_progress: 'green',
+  completed: 'blue',
+  suspended: 'gold',
+  canceled: 'blue',
+};
+
+/** 사업 운영 심사역 역할 (business_managers.role) */
+export const BUSINESS_MANAGER_ROLE_VALUES = ['lead', 'operator'] as const;
+
+export const BUSINESS_MANAGER_ROLE_LABEL: Record<BusinessManagerRole, string> = {
   lead: '운영총괄',
   operator: '운영담당',
 };
 
-export const PROGRAM_MANAGER_ROLE_OPTIONS = (
-  Object.keys(PROGRAM_MANAGER_ROLE_LABEL) as ProgramManagerRole[]
-).map((value) => ({ value, label: PROGRAM_MANAGER_ROLE_LABEL[value] }));
+export const BUSINESS_MANAGER_ROLE_OPTIONS = (
+  Object.keys(BUSINESS_MANAGER_ROLE_LABEL) as BusinessManagerRole[]
+).map((value) => ({ value, label: BUSINESS_MANAGER_ROLE_LABEL[value] }));
 
 /** 운영 역할 톤 — 운영총괄=red(역할성 권한), 운영담당=neutral. */
-export const PROGRAM_MANAGER_ROLE_COLOR: Record<ProgramManagerRole, BadgeTone> = {
+export const BUSINESS_MANAGER_ROLE_COLOR: Record<BusinessManagerRole, BadgeTone> = {
   lead: 'red',
   operator: 'neutral',
 };
 
-/** 프로그램 참여 스타트업 상태 (program_startups.status) */
-export const PROGRAM_STARTUP_STATUS_VALUES = [
+/** 사업 참여 스타트업 상태 (business_startups.status) */
+export const BUSINESS_STARTUP_STATUS_VALUES = [
   'applied',
   'screening',
   'selected',
@@ -361,7 +397,7 @@ export const PROGRAM_STARTUP_STATUS_VALUES = [
   'dropped',
 ] as const;
 
-export const PROGRAM_STARTUP_STATUS_LABEL: Record<ProgramStartupStatus, string> = {
+export const BUSINESS_STARTUP_STATUS_LABEL: Record<BusinessStartupStatus, string> = {
   applied: '지원',
   screening: '심사중',
   selected: '선정',
@@ -369,12 +405,12 @@ export const PROGRAM_STARTUP_STATUS_LABEL: Record<ProgramStartupStatus, string> 
   dropped: '중도탈락',
 };
 
-export const PROGRAM_STARTUP_STATUS_OPTIONS = (
-  Object.keys(PROGRAM_STARTUP_STATUS_LABEL) as ProgramStartupStatus[]
-).map((value) => ({ value, label: PROGRAM_STARTUP_STATUS_LABEL[value] }));
+export const BUSINESS_STARTUP_STATUS_OPTIONS = (
+  Object.keys(BUSINESS_STARTUP_STATUS_LABEL) as BusinessStartupStatus[]
+).map((value) => ({ value, label: BUSINESS_STARTUP_STATUS_LABEL[value] }));
 
 /** 참여 상태 톤 — 선정=green(진행), 수료=blue(종료), 지원·심사중·중도탈락=gold(중간). */
-export const PROGRAM_STARTUP_STATUS_COLOR: Record<ProgramStartupStatus, BadgeTone> = {
+export const BUSINESS_STARTUP_STATUS_COLOR: Record<BusinessStartupStatus, BadgeTone> = {
   applied: 'gold',
   screening: 'gold',
   selected: 'green',
@@ -414,4 +450,49 @@ export const APP_ROLE_OPTIONS = (Object.keys(APP_ROLE_LABEL) as AppRole[]).map((
 export const APP_ROLE_COLOR: Record<AppRole, BadgeTone> = {
   admin: 'red',
   manager: 'neutral',
+};
+
+/** 매칭 프로그램 상태 (matching_programs.status, 21_matching_programs.md) */
+export const MATCHING_PROGRAM_STATUS_VALUES = ['active', 'closed'] as const;
+
+export const MATCHING_PROGRAM_STATUS_LABEL: Record<MatchingProgramStatus, string> = {
+  active: '모집중',
+  closed: '마감',
+};
+
+export const MATCHING_PROGRAM_STATUS_OPTIONS = (
+  Object.keys(MATCHING_PROGRAM_STATUS_LABEL) as MatchingProgramStatus[]
+).map((value) => ({ value, label: MATCHING_PROGRAM_STATUS_LABEL[value] }));
+
+/** 프로그램 상태 톤 — 모집중=green(진행), 마감=blue(종료). */
+export const MATCHING_PROGRAM_STATUS_COLOR: Record<MatchingProgramStatus, BadgeTone> = {
+  active: 'green',
+  closed: 'blue',
+};
+
+/** 매칭 신청/연계 상태 (matching_applications.status, 21_matching_programs.md) */
+export const MATCHING_APPLICATION_STATUS_VALUES = [
+  'applied',
+  'recommended',
+  'selected',
+  'rejected',
+] as const;
+
+export const MATCHING_APPLICATION_STATUS_LABEL: Record<MatchingApplicationStatus, string> = {
+  applied: '신청완료',
+  recommended: '추천완료',
+  selected: '최종선정',
+  rejected: '탈락',
+};
+
+export const MATCHING_APPLICATION_STATUS_OPTIONS = (
+  Object.keys(MATCHING_APPLICATION_STATUS_LABEL) as MatchingApplicationStatus[]
+).map((value) => ({ value, label: MATCHING_APPLICATION_STATUS_LABEL[value] }));
+
+/** 신청 상태 톤 — 최종선정=green(진행/선정), 신청·추천·탈락=gold(중간 상태). */
+export const MATCHING_APPLICATION_STATUS_COLOR: Record<MatchingApplicationStatus, BadgeTone> = {
+  applied: 'gold',
+  recommended: 'gold',
+  selected: 'green',
+  rejected: 'gold',
 };

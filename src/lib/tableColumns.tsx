@@ -1,6 +1,6 @@
 import type { TableProps } from 'antd';
 import { Button } from 'antd';
-import { formatDate } from '@/lib/formatters';
+import { formatDate, formatKRWMillions } from '@/lib/formatters';
 
 type Column<T> = NonNullable<TableProps<T>['columns']>[number];
 type SortOrder = 'ascend' | 'descend' | null;
@@ -26,6 +26,33 @@ export const numberColumn = <T,>(page: number, pageSize: number, total: number):
   align: 'center',
   render: (_v, _r, index) => total - ((page - 1) * pageSize + index),
 });
+
+/** 매출/이익을 가진 도메인 모델 공통 필드 (사업·프로젝트). */
+export interface FinanceRecord {
+  revenue: number;
+  profit: number;
+}
+
+/**
+ * 매출·이익 컬럼 (사업·M&A·신사업 목록 공용, 목록 화면 전용 — 연동 카드에는 노출하지 않음).
+ * 금액은 일괄 백만원 단위(헤더 '(백만)' 표기, 셀은 숫자만). 이익은 손실 시 음수.
+ */
+export const financeColumns = <T extends FinanceRecord>(): Column<T>[] => [
+  {
+    title: '매출(백만)',
+    key: 'revenue',
+    width: 110,
+    align: 'right',
+    render: (_v, r) => formatKRWMillions(r.revenue, false),
+  },
+  {
+    title: '이익(백만)',
+    key: 'profit',
+    width: 110,
+    align: 'right',
+    render: (_v, r) => formatKRWMillions(r.profit, false),
+  },
+];
 
 /** 작성자 (created_by FK 임베드 이름 = 게시글 등록자). 값이 없으면 임시로 '관리자' 표시. */
 export const authorColumn = <T extends ListRecord>(): Column<T> => ({

@@ -117,14 +117,18 @@ AS $$
         'totalManagers',            (SELECT count(*) FROM managers WHERE deleted_at IS NULL),
         'totalStartups',            (SELECT count(*) FROM startups WHERE deleted_at IS NULL),
         'totalPortfolioValuation',  (SELECT COALESCE(SUM(valuation),0) FROM view_startup_latest_metrics),
-        'activePrograms',           (SELECT count(*) FROM programs
+        'activeBusinesses',           (SELECT count(*) FROM businesses
                                       WHERE deleted_at IS NULL AND CURRENT_DATE BETWEEN start_date AND end_date),
         'totalAum',                 (SELECT COALESCE(SUM(total_amount),0) FROM funds WHERE deleted_at IS NULL),
         'averageFundExhaustionRate',(SELECT COALESCE(ROUND(AVG(exhaustion_rate),2),0) FROM view_fund_exhaustion),
         'totalExperts',             (SELECT count(*) FROM experts WHERE deleted_at IS NULL),
         'averageMentoringRating',   (SELECT COALESCE(ROUND(AVG(rating),1),0) FROM expert_mentorings WHERE rating IS NOT NULL),
-        'activeProjects',           (SELECT count(*) FROM projects
-                                      WHERE deleted_at IS NULL AND stage NOT IN ('completed','canceled')),
+        'activeMaProjects',         (SELECT count(*) FROM projects
+                                      WHERE deleted_at IS NULL AND project_type = 'm_and_a'
+                                        AND stage NOT IN ('completed','canceled','suspended')),
+        'activeNewBizProjects',     (SELECT count(*) FROM projects
+                                      WHERE deleted_at IS NULL AND project_type = 'new_business'
+                                        AND stage NOT IN ('completed','canceled','suspended')),
         'reportSubmissionRate',     public.get_report_submission_rate(current_period),
         'totalDepartments',         (SELECT count(*) FROM departments WHERE deleted_at IS NULL),
         'totalPartners',            (SELECT count(*) FROM partners WHERE deleted_at IS NULL)
@@ -137,23 +141,23 @@ $$;
 
 ---
 
-## 7. 일정 동기화 (program_events → system_events)
+## 7. 일정 동기화 (business_events → system_events)
 
-[4_dashboard.md](4_dashboard.md) 4.3.2는 동일 일정을 양쪽에 수동 중복 입력하지 않도록 요구합니다. `program_events` 변경 시 `system_events`에 자동 반영하는 Trigger를 둡니다.
+[4_dashboard.md](4_dashboard.md) 4.3.2는 동일 일정을 양쪽에 수동 중복 입력하지 않도록 요구합니다. `business_events` 변경 시 `system_events`에 자동 반영하는 Trigger를 둡니다.
 
 ```sql
-CREATE OR REPLACE FUNCTION public.sync_program_event_to_system()
+CREATE OR REPLACE FUNCTION public.sync_business_event_to_system()
 RETURNS TRIGGER LANGUAGE plpgsql SECURITY INVOKER SET search_path = public
 AS $$
 BEGIN
     IF (TG_OP = 'DELETE') THEN
         DELETE FROM public.system_events
-        WHERE source_type = 'program' AND source_id = OLD.id;
+        WHERE source_type = 'business' AND source_id = OLD.id;
         RETURN OLD;
     END IF;
 
     INSERT INTO public.system_events (title, event_type, event_date, source_type, source_id, description)
-    VALUES (NEW.title, NEW.event_type, NEW.event_date, 'program', NEW.id, NEW.description)
+    VALUES (NEW.title, NEW.event_type, NEW.event_date, 'business', NEW.id, NEW.description)
     ON CONFLICT (source_type, source_id) DO UPDATE
         SET title = EXCLUDED.title,
             event_type = EXCLUDED.event_type,
@@ -167,13 +171,13 @@ $$;
 -- (0_db_schema.md: UNIQUE (source_type, source_id)). 기존 DB라면 아래로 보강한다.
 -- ALTER TABLE public.system_events ADD CONSTRAINT uq_system_events_source UNIQUE (source_type, source_id);
 
-CREATE TRIGGER program_events_sync_trigger
-AFTER INSERT OR UPDATE OR DELETE ON public.program_events
-FOR EACH ROW EXECUTE FUNCTION public.sync_program_event_to_system();
+CREATE TRIGGER business_events_sync_trigger
+AFTER INSERT OR UPDATE OR DELETE ON public.business_events
+FOR EACH ROW EXECUTE FUNCTION public.sync_business_event_to_system();
 ```
 
 > [!NOTE]
-> `system_events.event_type` CHECK는 `recruitment, demoday, networking, meeting, ir, event`만 허용합니다([0_db_schema.md](0_db_schema.md)). `program_events.event_type`도 이 집합 안에서 사용해야 동기화 시 제약 위반이 없습니다. 수동 입력 일정(협력 미팅, IR 등)은 `source_type = 'manual'`로 직접 INSERT합니다.
+> `system_events.event_type` CHECK는 `recruitment, demoday, networking, meeting, ir, event`만 허용합니다([0_db_schema.md](0_db_schema.md)). `business_events.event_type`도 이 집합 안에서 사용해야 동기화 시 제약 위반이 없습니다. 수동 입력 일정(협력 미팅, IR 등)은 `source_type = 'manual'`로 직접 INSERT합니다.
 
 ---
 

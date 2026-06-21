@@ -25,7 +25,7 @@
 
 ### 2) 타 페이지 연계성 (Connectivity & Relations)
 *   **협력 프로젝트 연계**: `project_partners` 조인 테이블 (`partner_id`, `project_id` 참조) -> 특정 협력사가 참여한 M&A 또는 오픈 이노베이션 프로젝트(`projects` 테이블) 정보 연동. 협력사 상세에서 **편집형 역방향 패널**(연결·신규생성·연동해제, 프로젝트 목록 동일 표).
-*   **협력 프로그램 연계**: `program_partners` 조인 테이블 (`partner_id`, `program_id` 참조, 0046) -> 협력 기관이 참여/연동된 프로그램(배치 사업) 연동. **양방향 편집**: 프로그램 상세 '참여 협력사'(정방향) + 협력사 상세 '참여 프로그램 (연동)'(역방향).
+*   **협력 사업 연계**: `business_partners` 조인 테이블 (`partner_id`, `business_id` 참조, 0046) -> 협력 기관이 참여/연동된 사업(배치 사업) 연동. **양방향 편집**: 사업 상세 '참여 협력사'(정방향) + 협력사 상세 '참여 사업 (연동)'(역방향).
 
 ### 🏷️ TypeScript Interface: `Partner`
 ```typescript

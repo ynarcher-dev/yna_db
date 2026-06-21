@@ -14,7 +14,8 @@ import { ProjectFormDrawer } from '@/components/projects/ProjectFormDrawer';
 import { EntityManagersPanel } from '@/components/common/EntityManagersPanel';
 import { ProjectLinksPanel } from '@/components/projects/ProjectLinksPanel';
 import { EntityFilesBlock } from '@/components/common/EntityFilesBlock';
-import { formatDate } from '@/lib/formatters';
+import { formatDate, formatKRWMillions } from '@/lib/formatters';
+import type { ProjectDomain } from './projectDomain';
 
 /**
  * 프로젝트 상세 (10_projects.md 10.3).
@@ -22,7 +23,7 @@ import { formatDate } from '@/lib/formatters';
  * 담당자 매핑·스타트업/협력사 매핑 패널·진척 타임라인은 후속 단계에서 결합한다.
  * 삭제 = 책임자(created_by)+관리자.
  */
-export function ProjectDetailView() {
+export function ProjectDetailView({ domain }: { domain: ProjectDomain }) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const toast = useAppToast();
@@ -39,7 +40,7 @@ export function ProjectDetailView() {
       <EmptyState
         message="프로젝트를 찾을 수 없습니다."
         action={
-          <Button type="primary" onClick={() => navigate('/projects')}>
+          <Button type="primary" onClick={() => navigate(domain.basePath)}>
             목록으로
           </Button>
         }
@@ -55,7 +56,7 @@ export function ProjectDetailView() {
       try {
         await remove.mutateAsync(project.id);
         toast.success('삭제되었습니다.');
-        navigate('/projects');
+        navigate(domain.basePath);
       } catch (err) {
         toast.error('삭제에 실패했습니다.', err);
       }
@@ -67,10 +68,10 @@ export function ProjectDetailView() {
       <div className="flex items-center justify-between gap-3">
         <button
           type="button"
-          onClick={() => navigate('/projects')}
+          onClick={() => navigate(domain.basePath)}
           className="flex items-center gap-1 text-sm text-yna-sub hover:text-yna-point"
         >
-          <HiArrowLeft /> 프로젝트 목록
+          <HiArrowLeft /> {domain.title} 목록
         </button>
         <Space>
           <Button onClick={() => setEditOpen(true)}>기본 수정</Button>
@@ -95,6 +96,8 @@ export function ProjectDetailView() {
           <Descriptions.Item label="예상 종료일">
             {project.endDate ? formatDate(project.endDate) : '-'}
           </Descriptions.Item>
+          <Descriptions.Item label="매출">{formatKRWMillions(project.revenue)}</Descriptions.Item>
+          <Descriptions.Item label="이익">{formatKRWMillions(project.profit)}</Descriptions.Item>
           <Descriptions.Item label="작성자">{project.authorName || '관리자'}</Descriptions.Item>
           <Descriptions.Item label="등록일">{formatDate(project.createdAt)}</Descriptions.Item>
           <Descriptions.Item label="수정일">{formatDate(project.updatedAt)}</Descriptions.Item>
@@ -133,6 +136,7 @@ export function ProjectDetailView() {
       <ProjectFormDrawer
         open={editOpen}
         project={project}
+        projectType={domain.projectType}
         onClose={() => setEditOpen(false)}
         onSaved={() => void refetch()}
       />

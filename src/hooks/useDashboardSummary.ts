@@ -10,7 +10,7 @@ import type { EventType } from '@/types/database';
 
 /**
  * 대시보드 통합 요약 조회 (4_dashboard.md / 16_aggregations.md).
- * - get_dashboard_summary(current_period) RPC 로 9개 지표를 1회 호출.
+ * - get_dashboard_summary(current_period) RPC 로 요약 지표를 1회 호출.
  * - system_events 에서 다가오는 일정 5건을 병렬 조회.
  * 두 호출을 묶어 React Query 로 캐싱·로딩·에러를 표준화한다(17_conventions.md 2장).
  */

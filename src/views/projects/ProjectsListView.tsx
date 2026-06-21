@@ -10,13 +10,17 @@ import { useAppToast } from '@/components/common/useAppToast';
 import { EmptyState } from '@/components/common/EmptyState';
 import { ListPagination } from '@/components/common/listPagination';
 import { ProjectFormDrawer } from '@/components/projects/ProjectFormDrawer';
-import {
-  PROJECT_PRIORITY_OPTIONS,
-  PROJECT_STAGE_OPTIONS,
-  PROJECT_TYPE_OPTIONS,
-} from '@/lib/labels';
+import { PeriodRangeFilter } from '@/components/common/PeriodRangeFilter';
+import { NumberRangeFilter } from '@/components/common/NumberRangeFilter';
+import { PROJECT_STAGE_OPTIONS } from '@/lib/labels';
+
+/** 매출·이익 필터는 백만원 단위로 입력받아 원 단위로 환산해 조회한다. */
+const MILLION = 1_000_000;
+const toWon = (v?: number) => (typeof v === 'number' ? v * MILLION : undefined);
+import type { ProjectDomain } from './projectDomain';
 import {
   numberColumn,
+  financeColumns,
   authorColumn,
   createdAtColumn,
   updatedAtColumn,
@@ -27,13 +31,14 @@ import type { Project } from '@/types/project';
 
 /**
  * 프로젝트 목록 (10_projects.md, 17_conventions.md 2장).
- * 검색(프로젝트명)·유형/단계/우선순위 필터·정렬·페이지네이션을 URL 상태로 직렬화한다.
+ * 검색(프로젝트명)·단계/우선순위 필터·정렬·페이지네이션을 URL 상태로 직렬화한다.
+ * 유형은 진입 메뉴(domain.projectType)로 고정되며 '유형' 필터/컬럼은 노출하지 않는다.
  * 삭제는 책임자(created_by)+관리자만 노출(actionsColumn canDelete).
  */
-export function ProjectsListView() {
+export function ProjectsListView({ domain }: { domain: ProjectDomain }) {
   const navigate = useNavigate();
   const toast = useAppToast();
-  const params = useListParams({ filterKeys: ['project_type', 'stage', 'priority'] });
+  const params = useListParams({ filterKeys: ['stage'], rangeKeys: ['revenue', 'profit'] });
   const role = useAuthStore((s) => s.role);
   const userId = useAuthStore((s) => s.session?.user.id);
   const isAdmin = role === 'admin';
@@ -44,9 +49,14 @@ export function ProjectsListView() {
 
   const { projects, total, isLoading, isFetching, isError, refetch } = useProjectsList({
     search: params.search,
-    projectType: params.filters.project_type,
+    projectType: domain.projectType,
     stage: params.filters.stage,
-    priority: params.filters.priority,
+    dateFrom: params.dateFrom,
+    dateTo: params.dateTo,
+    revenueMin: toWon(params.ranges.revenue?.min),
+    revenueMax: toWon(params.ranges.revenue?.max),
+    profitMin: toWon(params.ranges.profit?.min),
+    profitMax: toWon(params.ranges.profit?.max),
     sortBy: params.sortBy,
     sortOrder: params.sortOrder,
     page: params.page,
@@ -84,6 +94,7 @@ export function ProjectsListView() {
   const columns: TableProps<Project>['columns'] = [
     numberColumn<Project>(params.page, params.pageSize, total),
     ...projectColumns({ sortOrderOf }),
+    ...financeColumns<Project>(),
     authorColumn<Project>(),
     createdAtColumn<Project>(sortOrderOf('created_at')),
     updatedAtColumn<Project>(sortOrderOf('updated_at')),
@@ -100,7 +111,7 @@ export function ProjectsListView() {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold tracking-tight text-yna-main">프로젝트 관리</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-yna-main">{domain.title}</h1>
         <Button type="primary" icon={<HiOutlinePlus />} onClick={() => setCreateOpen(true)}>
           프로젝트 등록
         </Button>
@@ -116,27 +127,28 @@ export function ProjectsListView() {
         />
         <Select
           allowClear
-          placeholder="유형 전체"
-          options={PROJECT_TYPE_OPTIONS}
-          value={params.filters.project_type ?? undefined}
-          onChange={(value) => params.setFilter('project_type', value)}
-          className="w-40"
-        />
-        <Select
-          allowClear
-          placeholder="단계 전체"
+          placeholder="상태 전체"
           options={PROJECT_STAGE_OPTIONS}
           value={params.filters.stage ?? undefined}
           onChange={(value) => params.setFilter('stage', value)}
           className="w-32"
         />
-        <Select
-          allowClear
-          placeholder="우선순위 전체"
-          options={PROJECT_PRIORITY_OPTIONS}
-          value={params.filters.priority ?? undefined}
-          onChange={(value) => params.setFilter('priority', value)}
-          className="w-32"
+        <PeriodRangeFilter
+          from={params.dateFrom}
+          to={params.dateTo}
+          onChange={params.setDateRange}
+        />
+        <NumberRangeFilter
+          label="매출(백만)"
+          min={params.ranges.revenue?.min}
+          max={params.ranges.revenue?.max}
+          onChange={(min, max) => params.setRange('revenue', min, max)}
+        />
+        <NumberRangeFilter
+          label="이익(백만)"
+          min={params.ranges.profit?.min}
+          max={params.ranges.profit?.max}
+          onChange={(min, max) => params.setRange('profit', min, max)}
         />
       </div>
 
@@ -161,7 +173,7 @@ export function ProjectsListView() {
             onChange={onTableChange}
             pagination={false}
             onRow={(record) => ({
-              onClick: () => navigate(`/projects/${record.id}`),
+              onClick: () => navigate(`${domain.basePath}/${record.id}`),
               style: { cursor: 'pointer' },
             })}
             locale={{
@@ -186,7 +198,11 @@ export function ProjectsListView() {
         </>
       )}
 
-      <ProjectFormDrawer open={createOpen} onClose={() => setCreateOpen(false)} />
+      <ProjectFormDrawer
+        open={createOpen}
+        projectType={domain.projectType}
+        onClose={() => setCreateOpen(false)}
+      />
     </div>
   );
 }

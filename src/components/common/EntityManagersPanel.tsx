@@ -13,15 +13,15 @@ import { useManagerOptions } from '@/hooks/useManagers';
 import { useAppToast } from '@/components/common/useAppToast';
 import { RelatedTableCard } from '@/components/common/RelatedTableCard';
 import { managerColumns } from '@/lib/listColumns';
-import { PROGRAM_MANAGER_ROLE_OPTIONS } from '@/lib/labels';
+import { BUSINESS_MANAGER_ROLE_OPTIONS } from '@/lib/labels';
 import type { Manager } from '@/types/manager';
-import type { ProgramManagerRole } from '@/types/database';
+import type { BusinessManagerRole } from '@/types/database';
 
 /**
- * 담당자(다대다) 배정 패널 — 프로젝트/스타트업/프로그램/펀드 공용. UI·기능·명칭("담당자") 통일.
+ * 담당자(다대다) 배정 패널 — 프로젝트/스타트업/사업/펀드 공용. UI·기능·명칭("담당자") 통일.
  * 심사역 목록과 동일한 표(이름·직급·직책·소속·관심분야) + 관리(연동 해제) 컬럼.
  * - 모든 담당자를 자유롭게 추가/해제한다(작성자 필수 편입 규칙은 0054 에서 폐지).
- * - 프로그램만 운영 역할(role) 컬럼을 추가로 노출하고 인라인 변경할 수 있다.
+ * - 사업만 운영 역할(role) 컬럼을 추가로 노출하고 인라인 변경할 수 있다.
  * - canEdit=false 면 추가/해제 컨트롤을 숨긴다(예: 펀드는 Admin 만 편집).
  */
 export function EntityManagersPanel({
@@ -36,12 +36,12 @@ export function EntityManagersPanel({
   canEdit?: boolean;
 }) {
   const toast = useAppToast();
-  const hasRole = kind === 'program';
+  const hasRole = kind === 'business';
   const { managers: rows, isLoading } = useEntityManagers(kind, entityId);
   const { data: managerOptions = [] } = useManagerOptions();
   const { add, updateRole, remove } = useEntityManagerMutations(kind, entityId);
   const [selected, setSelected] = useState<string | undefined>();
-  const [role, setRole] = useState<ProgramManagerRole>('operator');
+  const [role, setRole] = useState<BusinessManagerRole>('operator');
 
   // 표시는 목록과 동일한 심사역 도메인 객체로, 조인 메타(역할·해제)는 심사역 id 로 역참조한다.
   const managers = useMemo(
@@ -78,7 +78,7 @@ export function EntityManagersPanel({
     );
   };
 
-  const handleRoleChange = (id: string, next: ProgramManagerRole) => {
+  const handleRoleChange = (id: string, next: BusinessManagerRole) => {
     updateRole.mutate(
       { id, role: next },
       { onError: (err) => toast.error('역할 변경에 실패했습니다.', err) },
@@ -98,7 +98,7 @@ export function EntityManagersPanel({
     });
   };
 
-  // 목록과 동일한 고유 컬럼 + (프로그램) 운영 역할 + 관리(작성자 표시/연동 해제) 컬럼.
+  // 목록과 동일한 고유 컬럼 + (사업) 운영 역할 + 관리(작성자 표시/연동 해제) 컬럼.
   const roleColumn: NonNullable<TableProps<Manager>['columns']>[number] = {
     title: '운영 역할',
     key: 'pm_role',
@@ -112,13 +112,13 @@ export function EntityManagersPanel({
           <Select
             size="small"
             className="w-24"
-            options={PROGRAM_MANAGER_ROLE_OPTIONS}
+            options={BUSINESS_MANAGER_ROLE_OPTIONS}
             value={meta.role}
-            onChange={(v: ProgramManagerRole) => handleRoleChange(meta.id, v)}
+            onChange={(v: BusinessManagerRole) => handleRoleChange(meta.id, v)}
           />
         </div>
       ) : (
-        PROGRAM_MANAGER_ROLE_OPTIONS.find((o) => o.value === meta.role)?.label ?? '-'
+        BUSINESS_MANAGER_ROLE_OPTIONS.find((o) => o.value === meta.role)?.label ?? '-'
       );
     },
   };
@@ -177,9 +177,9 @@ export function EntityManagersPanel({
             {hasRole ? (
               <Select
                 className="w-28"
-                options={PROGRAM_MANAGER_ROLE_OPTIONS}
+                options={BUSINESS_MANAGER_ROLE_OPTIONS}
                 value={role}
-                onChange={(v: ProgramManagerRole) => setRole(v)}
+                onChange={(v: BusinessManagerRole) => setRole(v)}
               />
             ) : null}
             <Button

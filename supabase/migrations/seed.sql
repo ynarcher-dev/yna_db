@@ -1,7 +1,7 @@
 -- =============================================================================
 -- seed.sql — 개발·데모용 최소 시드 (19_bootstrap.md 6장)
 -- 외래키 의존 순서: departments → managers → startups → metrics/followups →
---   funds → programs → experts → projects → partners → 매핑/이력
+--   funds → businesses → experts → projects → partners → 매핑/이력
 -- 주의: 운영 DB 에는 투입하지 않는다. 최초 1회 실행 (ON CONFLICT 로 재실행 안전).
 --   최초 Admin 계정(콘솔에서 생성한 dev@ynarcher.com)은 이미 managers 에 있으므로
 --   여기서는 Manager 2명만 추가한다.
@@ -77,30 +77,30 @@ INSERT INTO public.fund_investments (fund_id, startup_id, investment_amount, sha
   ('44444444-4444-4444-4444-000000000001', '33333333-3333-3333-3333-000000000002', 1500000000, 8.00, '2025-09-05')
 ON CONFLICT (fund_id, startup_id) DO NOTHING;
 
--- 7. 프로그램 1개 (현재 진행 중) + 운영진/참여사/일정
-INSERT INTO public.programs (id, name, generation, budget, start_date, end_date, recruitment_deadline, description) VALUES
-  ('55555555-5555-5555-5555-000000000001', '와이앤아처 액셀러레이팅 5기', 5, 500000000, '2026-04-01', '2026-12-31', '2026-03-15', '초기 스타트업 보육 프로그램')
+-- 7. 사업 1개 (현재 진행 중) + 운영진/참여사/일정
+INSERT INTO public.businesses (id, name, generation, budget, start_date, end_date, recruitment_deadline, description) VALUES
+  ('55555555-5555-5555-5555-000000000001', '와이앤아처 액셀러레이팅 5기', 5, 500000000, '2026-04-01', '2026-12-31', '2026-03-15', '초기 스타트업 보육 사업')
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.program_managers (program_id, manager_id, role) VALUES
+INSERT INTO public.business_managers (business_id, manager_id, role) VALUES
   ('55555555-5555-5555-5555-000000000001', '22222222-2222-2222-2222-000000000001', 'lead'),
   ('55555555-5555-5555-5555-000000000001', '22222222-2222-2222-2222-000000000002', 'operator')
-ON CONFLICT (program_id, manager_id) DO NOTHING;
+ON CONFLICT (business_id, manager_id) DO NOTHING;
 
-INSERT INTO public.program_startups (program_id, startup_id, status) VALUES
+INSERT INTO public.business_startups (business_id, startup_id, status) VALUES
   ('55555555-5555-5555-5555-000000000001', '33333333-3333-3333-3333-000000000003', 'selected'),
   ('55555555-5555-5555-5555-000000000001', '33333333-3333-3333-3333-000000000004', 'selected'),
   ('55555555-5555-5555-5555-000000000001', '33333333-3333-3333-3333-000000000005', 'screening')
-ON CONFLICT (program_id, startup_id) DO NOTHING;
+ON CONFLICT (business_id, startup_id) DO NOTHING;
 
--- program_events 는 트리거로 system_events 에 자동 동기화된다 (미래 일정)
-INSERT INTO public.program_events (id, program_id, title, event_type, event_date, description) VALUES
+-- business_events 는 트리거로 system_events 에 자동 동기화된다 (미래 일정)
+INSERT INTO public.business_events (id, business_id, title, event_type, event_date, description) VALUES
   ('99999999-9999-9999-9999-000000000001', '55555555-5555-5555-5555-000000000001', '5기 추가 모집 마감', 'recruitment', '2026-06-20', NULL),
   ('99999999-9999-9999-9999-000000000002', '55555555-5555-5555-5555-000000000001', '5기 데모데이', 'demoday', '2026-07-10', NULL),
   ('99999999-9999-9999-9999-000000000003', '55555555-5555-5555-5555-000000000001', '파트너 네트워킹 나이트', 'networking', '2026-08-15', NULL)
 ON CONFLICT (id) DO NOTHING;
 
--- 수동 일정 (프로그램 외) — 대시보드 타임라인 보강
+-- 수동 일정 (사업 외) — 대시보드 타임라인 보강
 INSERT INTO public.system_events (title, event_type, event_date, source_type, source_id, description) VALUES
   ('LP 정기 IR', 'ir', '2026-06-25', 'manual', NULL, '반기 운용 현황 보고')
 ON CONFLICT (source_type, source_id) DO NOTHING;

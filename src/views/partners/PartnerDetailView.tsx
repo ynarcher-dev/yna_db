@@ -115,7 +115,7 @@ export function PartnerDetailView() {
         </div>
       ) : null}
 
-      {/* 역방향 연계: 참여 프로젝트·프로그램 (각 섹션 토글로 표시/숨김) */}
+      {/* 역방향 연계: 참여 프로젝트·사업 (각 섹션 토글로 표시/숨김) */}
       <PartnerRelatedBlocks partnerId={partner.id} sections={partner.sections} />
 
       {/* 첨부파일 (전 도메인 공통 카드) — 항상 최하단 */}

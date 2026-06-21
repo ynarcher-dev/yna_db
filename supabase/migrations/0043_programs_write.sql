@@ -1,6 +1,6 @@
 -- =============================================================================
 -- 0043_programs_write.sql — 프로그램 메타 컬럼(updated_at·created_by) + INSERT/UPDATE RLS
--- 출처: docs/7_programs.md 7.4 (작성·수정 Admin·Manager / 삭제) + 발주자 확정 "책임자/담당자/관리자".
+-- 출처: docs/7_businesses.md 7.4 (작성·수정 Admin·Manager / 삭제) + 발주자 확정 "책임자/담당자/관리자".
 --   삭제(소프트) = 책임자(created_by) + 관리자 — 프로젝트(0033)와 동일 모델로 통일.
 -- 선행: 0001(programs), 0002(programs RLS 활성화·역할 헬퍼), 0004(programs SELECT 정책),
 --       0006(set_updated_at()).

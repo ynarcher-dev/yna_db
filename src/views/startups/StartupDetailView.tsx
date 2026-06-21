@@ -25,7 +25,7 @@ import { formatDate } from '@/lib/formatters';
 /**
  * 스타트업 상세 (6_startups.md 6.3).
  * 고유 블록: 프로필 카드(로고·브랜드컬러 액센트) + 기업 설명 + 담당 심사역 매핑.
- * 연계 블록(시계열 지표·후속 보고·주주 PIE·참여 프로그램/프로젝트)은 Phase 4 후속 단계에서 연결한다.
+ * 연계 블록(시계열 지표·후속 보고·주주 PIE·참여 사업/프로젝트)은 Phase 4 후속 단계에서 연결한다.
  */
 export function StartupDetailView() {
   const { id } = useParams<{ id: string }>();
@@ -152,7 +152,7 @@ export function StartupDetailView() {
         <MemoBlock startup={startup} onSaved={() => void refetch()} />
       ) : null}
 
-      {/* 정방향 연계 표시(읽기 전용): 참여 프로그램·프로젝트. 투자 재원·금액은 위 투자현황이 담당 */}
+      {/* 정방향 연계 표시(읽기 전용): 참여 사업·프로젝트. 투자 재원·금액은 위 투자현황이 담당 */}
       <StartupRelatedBlocks startupId={startup.id} sections={startup.sections} />
 
       {/* 첨부파일 (전 도메인 공통 카드) — 항상 최하단 */}

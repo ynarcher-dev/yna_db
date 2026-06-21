@@ -21,8 +21,8 @@ interface CeoDashboardSummary {
     totalStartups: number;            // 총 보육/피투자 스타트업 수
     totalPortfolioValuation: number;  // 포트폴리오 합산 기업가치
     
-    // 3. 프로그램 (Programs)
-    activePrograms: number;           // 현재 진행 중인 프로그램(배치/지원사업) 수
+    // 3. 사업 (Businesses)
+    activeBusinesses: number;           // 현재 진행 중인 사업(배치/지원사업) 수
     
     // 4. 펀드 (Funds)
     totalAum: number;                 // 총 AUM (결성 총액 합계)
@@ -32,8 +32,9 @@ interface CeoDashboardSummary {
     totalExperts: number;             // 등록 외부 전문가/멘토 인력 풀 규모
     averageMentoringRating: number;   // 누적 멘토링 만족도 평균 별점 (1.0 ~ 5.0)
     
-    // 6. 프로젝트 (Projects)
-    activeProjects: number;           // 진행 중인 M&A 딜 및 OI 매칭 프로젝트 수
+    // 6. 프로젝트 (Projects) — M&A·신사업은 상호 배타적이라 분리 집계 (0056)
+    activeMaProjects: number;         // 진행 중인 M&A 프로젝트 수 (project_type='m_and_a')
+    activeNewBizProjects: number;     // 진행 중인 신사업 프로젝트 수 (project_type='new_business')
     
     // 7. 후속 관리 (Follow-ups)
     reportSubmissionRate: number;     // 이번 분기 정기 보고서 제출 완료율 (%)
@@ -65,7 +66,7 @@ interface CeoDashboardSummary {
 화면 전체를 3행 3열의 그리드로 분할하여 브랜드 메인 컬러(`#515151`)를 배경으로 하고 중요 아이콘 및 핵심 수치를 강조하여 보여줍니다.
 1.  **[1] 심사역 카드**: `재직 심사역 수` (심사역 관리 페이지 바로가기 연동)
 2.  **[2] 스타트업 카드**: `포트폴리오 수` + `합산 기업가치(원화)` 표시
-3.  **[3] 프로그램 카드**: `진행 프로그램 수` (이번 달 종료 예정 건수 서브 표시)
+3.  **[3] 사업 카드**: `진행 사업 수` (이번 달 종료 예정 건수 서브 표시)
 4.  **[4] 펀드 카드**: `총 AUM` + `평균 소진율` 표시 (재무 건전성 판단)
 5.  **[5] 전문가 카드**: `외부 전문가 규모` + `평균 만족도 별점` (멘토 풀 역량 측정)
 6.  **[6] 프로젝트 카드**: `진행 중인 딜 수` (M&A / OI 영업 현황)
@@ -76,8 +77,8 @@ interface CeoDashboardSummary {
 *   **상태 디자인**: 각 카드 위젯에 마우스 호버 시 포인트 컬러(`#e22213`)로 외곽선 또는 텍스트가 강조되어 해당 상세 관리 페이지로 즉시 이동할 수 있도록 클릭 인터랙션을 부여합니다.
 
 ### 4.3.2 하단: 스케줄 및 다이어리 (Calendar Summary)
-*   `system_events`를 기준으로 프로그램 모집 마감, IR 피칭 데이, 대외 협력 미팅 등 다가오는 주요 5개 일정을 타임라인 형식으로 요약 제공합니다.
-*   프로그램 일정은 필요 시 `program_events` 등록·수정 시 `system_events`에 동기화하거나, 두 테이블을 합친 읽기 전용 View를 사용합니다. 동일 일정을 양쪽에서 수동으로 중복 입력하지 않습니다.
+*   `system_events`를 기준으로 사업 모집 마감, IR 피칭 데이, 대외 협력 미팅 등 다가오는 주요 5개 일정을 타임라인 형식으로 요약 제공합니다.
+*   사업 일정은 필요 시 `business_events` 등록·수정 시 `system_events`에 동기화하거나, 두 테이블을 합친 읽기 전용 View를 사용합니다. 동일 일정을 양쪽에서 수동으로 중복 입력하지 않습니다.
 
 ---
 

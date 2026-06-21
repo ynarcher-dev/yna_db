@@ -1,6 +1,6 @@
 -- =============================================================================
 -- 0046_program_partners.sql — 프로그램-협력사(기관) 연계 조인 테이블 + RLS
--- 출처: docs/7_programs.md·12_partners.md (프로그램에 협력 기관 연동, 다대다).
+-- 출처: docs/7_businesses.md·12_partners.md (프로그램에 협력 기관 연동, 다대다).
 -- 선행: 0001_schema.sql(programs·partners), 0002_rls.sql(역할 헬퍼 current_user_role).
 -- 패턴: project_partners(0001 #18 + 0036 쓰기 RLS)·program_startups 를 그대로 복제.
 -- 권한: 조회=전 직원, 매핑 추가/해제(INSERT/DELETE)=전 직원(관리자·심사역).

@@ -83,7 +83,7 @@ Supabase SQL Editor에서 아래 순서로 실행합니다.
 
 ## 6. 시드 데이터 원칙
 
-* 개발·데모용 최소 시드: 부서 2개, 심사역 3명(Admin 1·Manager 2), 스타트업 5개(+분기별 metrics 3스냅샷씩), 펀드 1개, 프로그램 1개, 전문가 3명, 프로젝트 2개, 협력사 2개.
+* 개발·데모용 최소 시드: 부서 2개, 심사역 3명(Admin 1·Manager 2), 스타트업 5개(+분기별 metrics 3스냅샷씩), 펀드 1개, 사업 1개, 전문가 3명, 프로젝트 2개, 협력사 2개.
 * 시드는 `supabase/seed.sql`로 버전 관리하고, 외래키 의존 순서(departments → managers → startups → ...)를 지킵니다.
 * 운영 DB에는 시드를 투입하지 않습니다.
 
@@ -110,5 +110,5 @@ npm run build       # vite build
 1. 공통 셸(AppShell: 사이드바·헤더) + 라우터 + 인증 가드([1_overview.md](1_overview.md), [14_auth.md](14_auth.md), [17_conventions.md](17_conventions.md)).
 2. 로그인·온보딩 → 대시보드(읽기 전용 RPC) 골격.
 3. CRUD 단순 도메인부터: 협력사 → 전문가 → 부서 → 심사역.
-4. 관계 복잡 도메인: 스타트업(시계열·후속보고) → 프로그램(캘린더·매핑) → 펀드 → 프로젝트(칸반·타임라인).
+4. 관계 복잡 도메인: 스타트업(시계열·후속보고) → 사업(캘린더·매핑) → 펀드 → 프로젝트(칸반·타임라인).
 5. 스마트 기능: PPTX 추출([18_pptx_spec.md](18_pptx_spec.md)) → AI 파트너([3_smart_features.md](3_smart_features.md), [15_system_schema.md](15_system_schema.md)).

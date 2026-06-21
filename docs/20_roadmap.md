@@ -71,15 +71,17 @@
 ## Phase 4 — 복합 도메인
 * **목표**: 시계열·매핑·캘린더·칸반 등 고난도 위젯 완성.
 * **선행**: Phase 3(CRUD 패턴 확정).
-* **참조**: [6_startups.md](6_startups.md), [7_programs.md](7_programs.md), [8_funds.md](8_funds.md), [10_projects.md](10_projects.md), [16_aggregations.md](16_aggregations.md)
-* **순서·핵심 태스크** (발주자 요청으로 **프로젝트를 프로그램보다 앞당기고, 프로그램을 마지막**으로 조정, 2026-06-17):
+* **참조**: [6_startups.md](6_startups.md), [7_businesses.md](7_businesses.md), [8_funds.md](8_funds.md), [10_projects.md](10_projects.md), [16_aggregations.md](16_aggregations.md)
+* **순서·핵심 태스크** (발주자 요청으로 **프로젝트를 사업보다 앞당기고, 사업을 마지막**으로 조정, 2026-06-17):
   1. ✅ **스타트업**: 기본 CRUD → `startup_metrics` 시계열 차트(Recharts) → `startup_followups` 트래커 → 주주 파이차트. (+담당자 다대다 retrofit, 0038)
   2. ✅ **프로젝트**: CRUD → 담당자(다대다)·매칭 스타트업/협력사 매핑 패널 → 섹션 토글·첨부파일. **칸반/딜 파이프라인은 폐기**(단순 상태값 대기/진행중/완료/중단/취소), 유형=M&A·신사업·기타. 상세 [10_projects.md](10_projects.md).
   3. ✅ **펀드**: CRUD(Admin 전용) → 소진율 바·LP 도넛 → `capital_calls`·`fund_investments`. 섹션 토글·첨부. (0039~0041) + 스타트업 자사투자 ↔ 펀드 연동(0042).
-  4. ✅ **프로그램**: CRUD → `program_events` FullCalendar(동기화 Trigger 동작) → 운영 심사역(다대다·역할)/참여 스타트업 매핑. 섹션 토글·첨부. (0043~0045)
+  4. ✅ **사업**: CRUD → `business_events` FullCalendar(동기화 Trigger 동작) → 운영 심사역(다대다·역할)/참여 스타트업 매핑. 섹션 토글·첨부. (0043~0045)
   5. ✅ **양방향 연계**: 스타트업·심사역·협력사·소속 상세에 역방향 참조 패널(읽기, 마이그레이션 불필요).
+  6. ✅ **매칭 프로그램**([21_matching_programs.md](21_matching_programs.md)): 부모 CRUD + `matching_applications`(스타트업×심사역×상태) 매핑 패널(팝업 폼). 사업+참여 스타트업 패턴 복제. (`0057`)
+  7. ✅ **투자 자료실**([22_invest_archives.md](22_invest_archives.md)): 게시판형 CRUD(고정 공지·조회수 RPC·카테고리 필터) + 공통 첨부 카드. 수정/삭제=작성자 본인·Admin. (`0058`)
 * **✅ 선결정 게이트 — 해결됨(2026-06-17)**: 담당 심사역을 **다대다로 확정**(책임자/담당자/관리자 3계층). 스타트업·프로젝트 모두 `*_managers` 조인 적용 완료(`view_department_stats` 등 집계 반영). 게시글 **삭제 권한 = 책임자+관리자**(프로젝트 적용), **수정 권한 축소**는 보류 유지. 상세 [6_startups.md](6_startups.md) 6.5.
-* **DoD**: 시계열 차트가 record_date 순으로 렌더 / 담당자 다대다 배정 동작 / program_events 등록이 대시보드 일정에 반영 / 펀드 작성은 Admin만.
+* **DoD**: 시계열 차트가 record_date 순으로 렌더 / 담당자 다대다 배정 동작 / business_events 등록이 대시보드 일정에 반영 / 펀드 작성은 Admin만.
 
 ---
 

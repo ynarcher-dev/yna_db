@@ -19,6 +19,14 @@ interface ProjectsListArgs {
   projectType?: string;
   stage?: string;
   priority?: string;
+  /** 기간 조회 범위(개시~종료 겹침). YYYY-MM-DD, 빈 값이면 미적용 */
+  dateFrom?: string;
+  dateTo?: string;
+  /** 매출·이익 범위(원 단위). 미지정 끝점은 미적용 */
+  revenueMin?: number;
+  revenueMax?: number;
+  profitMin?: number;
+  profitMax?: number;
   sortBy: string;
   sortOrder: 'asc' | 'desc';
   page: number;
@@ -36,6 +44,11 @@ export function useProjectsList(args: ProjectsListArgs) {
       stage: args.stage,
       priority: args.priority,
     },
+    dateOverlap: { startColumn: 'start_date', endColumn: 'end_date', from: args.dateFrom, to: args.dateTo },
+    numericRanges: [
+      { column: 'revenue', min: args.revenueMin, max: args.revenueMax },
+      { column: 'profit', min: args.profitMin, max: args.profitMax },
+    ],
     sortBy: args.sortBy,
     sortOrder: args.sortOrder,
     page: args.page,
@@ -66,16 +79,17 @@ export function useProject(id: string | undefined) {
   });
 }
 
-/** id+name 옵션 목록 (Select 용, 예: 스타트업 상세에서 참여 프로젝트 매핑). 미삭제 전체. */
-export function useProjectOptions() {
+/**
+ * id+name 옵션 목록 (Select 용, 예: 협력사 상세에서 참여 프로젝트 매핑). 미삭제 전체.
+ * projectType 을 주면 해당 유형만 — M&A/신사업 분리 연동에서 유형별 후보만 노출한다.
+ */
+export function useProjectOptions(projectType?: string) {
   return useQuery({
-    queryKey: [TABLE, 'options'],
+    queryKey: [TABLE, 'options', projectType ?? 'all'],
     queryFn: async (): Promise<{ value: string; label: string }[]> => {
-      const { data, error } = await supabase
-        .from(TABLE)
-        .select('id, name')
-        .is('deleted_at', null)
-        .order('name', { ascending: true });
+      let q = supabase.from(TABLE).select('id, name').is('deleted_at', null);
+      if (projectType) q = q.eq('project_type', projectType);
+      const { data, error } = await q.order('name', { ascending: true });
       if (error) throw error;
       return (data ?? []).map((p) => ({ value: p.id as string, label: p.name as string }));
     },
@@ -96,6 +110,8 @@ function toRow(input: ProjectInput) {
     priority: input.priority,
     start_date: input.startDate,
     end_date: input.endDate ? input.endDate : null,
+    revenue: input.revenue,
+    profit: input.profit,
     description: input.description ? input.description.trim() : null,
     sections: input.sections,
   };

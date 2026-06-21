@@ -16,7 +16,7 @@ CREATE TABLE public.notifications (
     title VARCHAR(150) NOT NULL,
     message TEXT,
     link_url TEXT, -- 클릭 시 이동할 앱 내부 경로 (예: /startups/{id})
-    source_type VARCHAR(30), -- startup, project, program, fund, system
+    source_type VARCHAR(30), -- startup, project, business, fund, system
     source_id UUID,
     is_read BOOLEAN DEFAULT false NOT NULL,
     read_at TIMESTAMP WITH TIME ZONE,

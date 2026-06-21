@@ -8,6 +8,7 @@ import {
   HiOutlineCurrencyDollar,
   HiOutlineAcademicCap,
   HiOutlineClipboardList,
+  HiOutlineLightBulb,
   HiOutlineDocumentReport,
   HiOutlineCollection,
   HiOutlineGlobeAlt,
@@ -27,7 +28,7 @@ interface CardConfig {
   sub?: string;
 }
 
-/** 9대 도메인 카드 구성 (4_dashboard.md 4.3.1). */
+/** 도메인 카드 구성 (4_dashboard.md 4.3.1). 프로젝트는 M&A·신사업으로 분리 집계. */
 function buildCards(m: DashboardMetrics): CardConfig[] {
   return [
     { key: 'managers', label: '심사역', icon: HiOutlineUserGroup, path: '/managers', value: `${m.totalManagers}명` },
@@ -39,7 +40,7 @@ function buildCards(m: DashboardMetrics): CardConfig[] {
       value: `${m.totalStartups}개`,
       sub: `합산 기업가치 ${formatKRW(m.totalPortfolioValuation)}`,
     },
-    { key: 'programs', label: '프로그램', icon: HiOutlineCalendar, path: '/programs', value: `${m.activePrograms}개`, sub: '진행 중' },
+    { key: 'businesses', label: '사업', icon: HiOutlineCalendar, path: '/businesses', value: `${m.activeBusinesses}개`, sub: '진행 중' },
     {
       key: 'funds',
       label: '펀드',
@@ -56,7 +57,8 @@ function buildCards(m: DashboardMetrics): CardConfig[] {
       value: `${m.totalExperts}명`,
       sub: `평균 만족도 ${Number(m.averageMentoringRating).toFixed(1)}점`,
     },
-    { key: 'projects', label: '프로젝트', icon: HiOutlineClipboardList, path: '/projects', value: `${m.activeProjects}건`, sub: '진행 중' },
+    { key: 'ma-projects', label: 'M&A', icon: HiOutlineClipboardList, path: '/ma-projects', value: `${m.activeMaProjects}건`, sub: '진행 중' },
+    { key: 'new-biz-projects', label: '신사업', icon: HiOutlineLightBulb, path: '/new-biz-projects', value: `${m.activeNewBizProjects}건`, sub: '진행 중' },
     {
       key: 'followups',
       label: '후속 보고',
@@ -73,7 +75,7 @@ function buildCards(m: DashboardMetrics): CardConfig[] {
 function CardSkeleton() {
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {Array.from({ length: 9 }).map((_, i) => (
+      {Array.from({ length: 10 }).map((_, i) => (
         <div key={i} className="h-32 animate-pulse rounded-lg bg-yna-border" />
       ))}
     </div>
