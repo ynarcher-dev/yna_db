@@ -1,6 +1,6 @@
 # 🧭 17. 공통 개발 규약 (17_conventions.md)
 
-본 문서는 페이지마다 반복되는 **라우팅/IA, 목록(검색·필터·정렬·페이지네이션), 폼 검증, 파일 업로드** 패턴을 한 번만 정의해 9개 도메인 화면에서 동일하게 재사용하기 위한 규약입니다. [0_rules.md](0_rules.md)의 폴더 구조·500줄 규칙과 함께 적용합니다.
+본 문서는 페이지마다 반복되는 **라우팅/IA, 목록(검색·필터·정렬·페이지네이션), 폼 검증, 파일 업로드** 패턴을 한 번만 정의해 도메인 화면에서 동일하게 재사용하기 위한 규약입니다. [0_rules.md](0_rules.md)의 폴더 구조·500줄 규칙과 함께 적용합니다.
 
 ---
 
@@ -11,19 +11,22 @@ React Router 기준 URL 체계입니다. 목록은 복수형, 상세는 `/:id`, 
 | 영역 | 경로 | 비고 |
 | :--- | :--- | :--- |
 | 로그인/온보딩 | `/login`, `/onboarding/password`, `/reset-password` | [14_auth.md](14_auth.md) |
-| 대시보드 | `/` | 9대 도메인 요약 |
+| 대시보드 | `/` | 핵심 도메인 요약 카드 |
 | 심사역 | `/managers`, `/managers/:id?tab=startups\|businesses\|projects` | |
 | 스타트업 | `/startups`, `/startups/:id?tab=metrics\|followups\|relations` | |
-| 사업 | `/businesses`, `/businesses/:id?tab=calendar\|managers\|startups` | |
+| 사업 | `/businesses`, `/businesses/:id` | [7_businesses.md](7_businesses.md) |
 | 펀드 | `/funds`, `/funds/:id?tab=calls\|investments` | |
 | 전문가 | `/experts`, `/experts/:id` | |
-| 프로젝트 | `/projects`(칸반), `/projects/:id?tab=mapping\|timeline` | |
+| M&A 관리 | `/ma-projects`, `/ma-projects/:id` | [10_projects.md](10_projects.md) |
+| 신사업 관리 | `/new-biz-projects`, `/new-biz-projects/:id` | [10_projects.md](10_projects.md) |
 | 소속 | `/departments`, `/departments/:id` | |
 | 협력사 | `/partners`, `/partners/:id` | |
 | 매칭 프로그램 | `/matching-programs`, `/matching-programs/:id` | [21_matching_programs.md](21_matching_programs.md) |
 | 투자 자료실 | `/invest-archives`, `/invest-archives/:id` | [22_invest_archives.md](22_invest_archives.md) |
-| AI 파트너 | `/assistant`, `/assistant/:sessionId` | [3_smart_features.md](3_smart_features.md) |
 | 계정 관리 | `/admin/accounts` | Admin 전용 |
+| 관리자 설정 | `/admin/settings` | 플레이스홀더 |
+| 도구 모음 | `/toolbox/ready` | 플레이스홀더 |
+| 실험실 | `/labs/ready` | 플레이스홀더 |
 
 * **레이아웃**: 모든 인증 라우트는 공통 셸([1_overview.md](1_overview.md): 사이드바 + 헤더) 안에 중첩됩니다. 미인증/온보딩 라우트는 셸 없이 단독 렌더링합니다.
 * **라우트 가드**: `<RequireAuth>`(세션 필요) → `<RequireRole role="admin">`(Admin 전용) 순으로 감쌉니다. 권한 미달 시 403 화면 컴포넌트를 렌더링합니다.
@@ -191,7 +194,11 @@ interface BasePerson {
 | 전문가 | 약력·소개·멘토링 만족도·**첨부파일**(4) | ✅ |
 | 심사역 | 약력·소개·**첨부파일**(3, 토글은 **Admin 전용**) | ✅ |
 | 소속(부서) | **첨부파일**(1) | ✅ (Phase 4 부서원/투자성과 블록 추가 시 키 확장) |
-| 사업·펀드·프로젝트 | (상세 미구현) | **상세 구현 시 본 규약 + 첨부파일 카드 포함** |
+| 사업 | 운영 심사역·참여 스타트업·참여 협력사·마일스톤 캘린더·첨부파일(5) | ✅ |
+| 펀드 | LP 구성·Capital Call·피투자 포트폴리오·담당자·첨부파일(5) | ✅ |
+| 프로젝트 | 담당자·매칭 스타트업·참여 협력사·마일스톤 캘린더·첨부파일 | ✅ |
+| 매칭 프로그램 | 매칭 신청/연계·첨부파일(2) | ✅ |
+| 투자 자료실 | 첨부파일(1) | ✅ |
 
 * **첨부파일 카드**는 위 모든 도메인에 공통으로 들어가며(전 도메인 상세), 다른 섹션과 동일하게 `sections.attachments` 토글로 표시/숨김합니다. 카드 구현 자체는 [PATTERNS.md](PATTERNS.md) 16장(공통 `EntityFilesBlock`).
 

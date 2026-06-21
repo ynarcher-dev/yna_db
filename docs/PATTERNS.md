@@ -153,6 +153,16 @@
 * 파일명 `000N_{domain}_{목적}.sql`. **재실행 안전(idempotent)**: `IF NOT EXISTS` / `DROP ... IF EXISTS` / `ON CONFLICT` / `CREATE OR REPLACE`.
 * 작성자는 SQL 파일만 만들고 **사용자가 Supabase SQL Editor 에서 직접 RUN**(번호 순서대로). RPC 시그니처 변경 시 `DROP FUNCTION IF EXISTS`(구 시그니처) 후 재생성.
 * 도메인 공통 메타 컬럼 추가 패턴: `updated_at`(+공통 `set_updated_at()` 트리거 + 기존행 backfill) / `created_by UUID ... DEFAULT auth.uid()`.
+* **같은 기능의 보강 요청은 먼저 기존 미적용 마이그레이션에 흡수**한다. 사용자가 아직 DB에 RUN 하지 않은 SQL이라면 새 번호를 만들지 않고 같은 파일을 최종본으로 갱신한다.
+* **이미 RUN 한 SQL은 수정하지 않는다.** 운영 DB와 이력 정합성을 위해 적용 이후 변경은 새 번호로 forward-only 마이그레이션을 만든다.
+* 새 번호를 만들 때는 기능 단위로 묶는다. 단일 컬럼·라벨·옵션 같은 얇은 변경은 같은 화면/도메인의 보강사항과 합쳐 파일 수 증가를 줄인다.
+* SQL을 추가·통합·삭제하면 [PROGRESS.md](PROGRESS.md), [supabase/README.md](../supabase/README.md), 필요 시 [24_project_audit_workflow.md](24_project_audit_workflow.md)를 같은 턴에 갱신한다.
+
+### 13.1 작업-문서 동시 갱신 규약
+
+* 기능 구현 또는 즉석 수정 요청을 처리할 때는 관련 도메인 문서의 데이터 모델·화면 요건·구현 메모를 함께 갱신한다.
+* 전체 구현 화면과 문서 대응 상태는 [24_project_audit_workflow.md](24_project_audit_workflow.md)의 전수 조사표를 기준으로 관리한다.
+* 공통 패턴이 바뀌면 개별 문서에 반복해서 쓰지 않고 이 문서에 통합한 뒤, 도메인 문서에서는 참조만 둔다.
 
 ---
 
@@ -203,19 +213,18 @@
 
 ---
 
-## 17. 담당자 모델 — 책임자 / 담당자(다대다) / 관리자 (Ownership)
+## 17. 담당자 모델 — 작성자(책임자) / 담당자(다대다) / 관리자 (Ownership)
 
 발주자 확정(2026-06-17). 게시글형 도메인의 사람 권한·연계는 3계층으로 표준화한다.
 
-* **책임자(author)** = `created_by`(등록자 1인). 전 테이블 공통 메타(13장). 화면 라벨 **'책임자'**(구 '작성자' — `authorColumn`·상세 라벨 전부 통일).
+* **작성자(author, 권한상 책임자)** = `created_by`(등록자 1인). 전 테이블 공통 메타(13장). 현재 화면 공통 컬럼 라벨은 [tableColumns.tsx](../src/lib/tableColumns.tsx)의 `authorColumn` 기준 **'작성자'**이며, 삭제 권한을 판단할 때는 이 값을 책임자처럼 사용한다.
 * **담당자(다대다)** = `{domain}_managers` 조인 테이블. 한 레코드에 담당 심사역 여러 명. **명칭은 전 도메인 "담당자"로 통일**(역할이 있는 사업만 역할 라벨 추가). 적용 도메인 = **프로젝트(`project_managers` 0034)·스타트업(`startup_managers` 0038)·사업(`business_managers` 0001)·펀드(`fund_managers` 0047)** 4종.
   * 공통 컴포넌트 [components/common/EntityManagersPanel.tsx](../src/components/common/EntityManagersPanel.tsx) + 훅 [hooks/useEntityManagers.ts](../src/hooks/useEntityManagers.ts)(`kind: 'project' | 'startup' | 'business' | 'fund'`). 역할 구분이 **없는** 도메인은 이걸 그대로 재사용.
-  * **역할이 있는 도메인**(사업 `business_managers.role` 운영총괄/운영담당)은 전용 패널(`BusinessManagersPanel`)로 역할 Select 포함.
+  * **역할이 있는 도메인**(사업 `business_managers.role` 운영총괄/운영담당)은 공통 `EntityManagersPanel kind="business"`에서 역할 Select를 함께 노출한다.
   * **펀드는 Admin 도메인**(8_funds.md): 담당자 조회=전 직원, 배정 추가/해제=**Admin 전용**(`0047`). 나머지 3종은 추가/해제=전 직원.
 * **관리자** = role=admin.
-* **책임자 = 담당자 자동 필수 편입 (`0048`/`0049`, 발주자 확정 2026-06-17)**: 부모 레코드 등록 시 책임자(`created_by`)는 해당 도메인 담당자 조인에 **트리거로 자동 편입**되며(`sync_author_manager` AFTER INSERT, SECURITY DEFINER → 조인 RLS 무관하게 항상 편입), **연동 해제 불가**(`prevent_author_manager_unlink` 트리거가 책임자 행 DELETE 차단). 나머지 담당자만 자유롭게 추가/해제. **사업은 책임자를 운영총괄(`role='lead'`)로**, 나머지 3종은 역할 없이 편입. 4개 도메인(프로젝트·스타트업·사업·펀드) 공통. 화면에서도 책임자 행은 해제 버튼을 노출하지 않는다.
-  * **레거시 백필(`0049`)**: 시드·구레코드처럼 `created_by`가 NULL 이면 작성자를 식별할 수 없으므로 **가장 먼저 등록된 Admin 1명**(`role='admin'`, `created_at·id` 오름차순)을 디폴트 책임자로 채우고 담당자에도 편입한다(4도메인 동일 인물). Admin 이 없으면 변경 없음(안전).
-* **권한**: 수정 = 전 직원 공통(현행). **삭제(소프트) = 책임자 + 관리자**(프로젝트 `0033`·사업 `0043` 적용. RLS `*_update_staff` WITH CHECK: `admin OR (manager AND (deleted_at IS NULL OR created_by = auth.uid()))` + 화면 `actionsColumn` `canDelete` 술어). 펀드·부서 등 Admin 전용 도메인은 삭제도 Admin.
+* **작성자 자동 담당자 편입 규칙 폐지(`0054`, 발주자 변경 2026-06-18)**: `0048`/`0049`에서 만들었던 `created_by` 자동 담당자 편입 및 해제 차단 트리거는 [0054_remove_author_as_manager.sql](../supabase/migrations/0054_remove_author_as_manager.sql)로 제거했다. 현재 담당자는 작성자 여부와 무관하게 각 상세 화면에서 자유롭게 추가/해제한다.
+* **권한**: 수정 = 전 직원 공통(현행). **삭제(소프트) = 작성자(created_by) + 관리자**(프로젝트 `0033`·사업 `0043` 적용. RLS `*_update_staff` WITH CHECK: `admin OR (manager AND (deleted_at IS NULL OR created_by = auth.uid()))` + 화면 `actionsColumn` `canDelete` 술어). 펀드·부서 등 Admin 전용 도메인은 삭제도 Admin.
 * **조인 RLS**: 조회=전 직원, 추가/변경/해제=전 직원(또는 도메인 권한, 예: 펀드=Admin). 조인 테이블은 소프트삭제 없이 실제 INSERT/UPDATE/DELETE.
 * **목록 표시**: 담당자 이름은 `{domain}_managers(manager:managers(name))` 임베드 → `managerNames` 배열. 담당자 **필터**가 필요하면 inner 임베드 + 임베드 컬럼 필터(예: 스타트업 `startup_managers!inner` + `startup_managers.manager_id` eq).
 

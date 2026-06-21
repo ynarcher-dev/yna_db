@@ -44,7 +44,7 @@ erDiagram
 
 > ⚠️ **베이스라인 안내**: 본 DDL 은 **초기 스키마(0001)** 기준입니다. 이후 마이그레이션(`0005`~)으로 추가/개편된 구조는 [PROGRESS.md](PROGRESS.md) 마이그레이션 표가 정본입니다. 특히 주요 구조 변경(2026-06-17):
 > * **소속 계층 개편 — 회사 > 그룹 > 팀**(`0050`~`0053`): `departments`에 `company`(회사, 고정 3종) 추가, `teams`(팀, 소속 단위) 신설, `managers.team_id` 추가(팀 변경 시 `department_id` 자동 동기화). 상세 [11_departments.md](11_departments.md).
-> * **담당자(다대다) 표준화**: `startup_managers`(`0038`)·`project_managers`(`0034`)·`fund_managers`(`0047`) 조인 도입(사업은 `business_managers` 기존). 책임자(`created_by`)는 트리거로 담당자에 자동 편입·해제 불가(`0048`/`0049`). 상세 [PATTERNS.md](PATTERNS.md) 17장.
+> * **담당자(다대다) 표준화**: `startup_managers`(`0038`)·`project_managers`(`0034`)·`fund_managers`(`0047`) 조인 도입(사업은 `business_managers` 기존). `created_by` 자동 담당자 편입·해제 차단은 `0048`/`0049`에서 도입했다가 `0054`로 폐지되어, 현행은 작성자와 담당자를 분리 관리한다. 상세 [PATTERNS.md](PATTERNS.md) 17장.
 > * **양방향 연계**(`0046` `business_partners` 등) 및 각 도메인 `created_by`·`updated_at`·`sections` 메타 컬럼 추가. 아래 DDL 에는 미반영.
 
 ```sql

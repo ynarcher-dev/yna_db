@@ -2,7 +2,7 @@
 
 > 와이앤아처 PMS 개발 진행 상황 추적 문서. **작업을 완료할 때마다 이 문서의 완료 여부를 갱신한다.**
 > 개발 순서 기준은 [20_roadmap.md](20_roadmap.md)의 Phase. (문서 번호 ≠ 개발 순서)
-> 최종 갱신: **2026-06-17** (Phase 4 전 도메인 완료 + 담당 심사역 다대다 + 양방향 연계 + 역방향 표현 보완 + **담당자/책임자 모델 표준화(펀드 담당자·작성자 자동편입) + 소속 회사>그룹>팀 개편**)
+> 최종 갱신: **2026-06-21** (전체 화면·문서 대조표 신설 + 작업 운영 가이드 추가 + 간트 마일스톤 `0063` 통합본 정리 + `0059`~`0063` 마이그레이션 현황 반영)
 
 ## 범례
 - ✅ 완료(코드 + 품질게이트 통과) · 🔵 진행 중 · ⬜ 미착수
@@ -60,17 +60,17 @@
 #### ✅ 첨부파일 카드 — 전 도메인 공통 (2026-06-17)
 모든 게시글 상세에 동일한 **임의 파일 업로드 + 개별/전체(zip) 다운로드** 카드([17_conventions.md](17_conventions.md) 4장·[PATTERNS.md](PATTERNS.md) 16장). 공통 컴포넌트 [EntityFilesBlock](../src/components/common/EntityFilesBlock.tsx) 한 줄(`entityType`+`entityId`)로 전 도메인(스타트업·협력사·전문가·심사역·소속) 적용. **새 테이블 없이** `uploaded_files` 폴리모픽 확장(`entity_type`/`entity_id`, `purpose='attachment'`, `0031`) + 비공개 reports 버킷 재사용. 다운로드는 기존 인프라(목적 입력 → 서명 URL → `log_file_download` 감사 로그) 재사용. **용량 제한 없음**(추후 S3). 각 도메인 `sections.attachments` 토글로 표시/숨김. 소속(부서)은 이 카드 도입으로 sections 인프라 신설(`0032`).
 
-> **✅ 보류 결정 확정(2026-06-17)**: 담당 심사역 **다대다 채택**(책임자=created_by / 담당자=다대다 조인 / 관리자 3계층). 게시글 **삭제=책임자+관리자**(프로젝트·사업 적용), **수정 권한 축소**는 보류 유지(현행 전 직원). 화면 라벨 통일: 작성자→**책임자**. 상세 [6_startups.md](6_startups.md) 6.5.
+> **✅ 보류 결정 확정(2026-06-17)**: 담당 심사역 **다대다 채택**(작성자/책임자=`created_by` / 담당자=다대다 조인 / 관리자 3계층). 게시글 **삭제=작성자+관리자**(프로젝트·사업 적용), **수정 권한 축소**는 보류 유지(현행 전 직원). 화면 공통 컬럼 라벨은 현재 코드 기준 **작성자**. 상세 [6_startups.md](6_startups.md) 6.5.
 
 #### ✅ 프로젝트(projects) (2026-06-17, 발주자 요청으로 사업보다 먼저)
-- 기본 CRUD(검색·유형/상태/우선순위 필터) + 삭제=책임자+관리자. **유형=M&A·신사업·기타(자유입력)**, **상태=대기·진행중·완료·중단·취소**(단순 상태값, **칸반/딜 파이프라인 폐기**).
+- 기본 CRUD(검색·유형/상태/우선순위 필터) + 삭제=작성자+관리자. **유형=M&A·신사업·기타(자유입력)**, **상태=대기·진행중·완료·중단·취소**(단순 상태값, **칸반/딜 파이프라인 폐기**).
 - 담당자(다대다 `project_managers`) 배정 패널 · 매칭 스타트업/협력사(`project_startups`/`project_partners`) 좌우 2열 패널 · 섹션 토글 · 첨부파일. (`0033`~`0037`)
 
 #### ✅ 펀드(funds) (2026-06-17, Admin 전용)
 - 기본 CRUD + **소진율 진척바** · **LP 구성**(jsonb) 표+지분율 **도넛** · **Capital Call**(`capital_calls`) · **피투자 포트폴리오**(`fund_investments`, 스타트업 링크) · 섹션 토글 · 첨부파일. (`0039`~`0041`)
 
 #### ✅ 사업(businesses) (2026-06-17, Phase 4 마지막)
-- 기본 CRUD(기수·예산·기간·모집마감) + 삭제=책임자+관리자. **운영 심사역 매핑**(`business_managers`, 역할 운영총괄/운영담당) · **참여 스타트업 매핑**(`business_startups`, 보육 상태) · **마일스톤 캘린더**(`business_events` + FullCalendar, **대시보드 일정 자동 동기화**) · 섹션 토글 · 첨부파일. (`0043`~`0045`)
+- 기본 CRUD(사업명·구분·상태·기수·매출·이익·기간) + 삭제=작성자+관리자. **운영 심사역 매핑**(`business_managers`, 역할 운영총괄/운영담당, 참여율/투입기간) · **참여 스타트업 매핑**(`business_startups`, 보육 상태) · **참여 협력사 매핑**(`business_partners`) · **마일스톤 간트/일정**(`business_events`, **대시보드 일정 자동 동기화**) · 섹션 토글 · 첨부파일. (`0043`~`0063`)
 
 #### ✅ 양방향 연계(역방향 참조 패널) (2026-06-17)
 공통 인프라 `hooks/useRelatedRecords.ts` + `components/common/RelatedListCard.tsx`(읽기 전용, 새 마이그레이션 없음). 적용:
@@ -93,11 +93,10 @@
 
 **남은 역방향 2건**: ⬜ 전문가 자문매칭 히스토리(`expert_mentorings`, 입력 화면 별도) · ⬜ 소속 본부장(`leader_id`) 임명/표시(모델 확장+write 필요).
 
-#### ✅ 담당자/책임자 모델 표준화 (2026-06-17, 발주자 확정)
-전 게시글 도메인의 사람 권한·연계를 **책임자 / 담당자(다대다) / 관리자** 3계층으로 통일([PATTERNS.md](PATTERNS.md) 17장).
+#### ✅ 담당자/작성자 모델 표준화 (2026-06-17~18, 발주자 확정)
+전 게시글 도메인의 사람 권한·연계를 **작성자(삭제 권한상 책임자) / 담당자(다대다) / 관리자** 3계층으로 통일([PATTERNS.md](PATTERNS.md) 17장).
 - ✅ **펀드도 담당자(다대다)** `fund_managers`(`0047`) — 명칭 "담당자" 전 도메인 통일. 배정 추가/해제=Admin(펀드는 Admin 도메인). 공통 `EntityManagersPanel kind="fund"` 재사용.
-- ✅ **책임자 = 담당자 자동 필수 편입**(`0048`) — 부모 등록 시 `created_by`를 담당자 조인에 트리거로 자동 편입(`sync_author_manager`), 책임자 행은 **해제 불가**(`prevent_author_manager_unlink`). 사업은 운영총괄(`role='lead'`)로, 나머지(프로젝트·스타트업·펀드)는 역할 없이. 화면도 책임자 행 해제 버튼 미노출.
-- ✅ **레거시 백필**(`0049`) — `created_by` NULL 인 시드/구레코드는 **가장 먼저 등록된 Admin 1명**을 디폴트 책임자로 채우고 담당자에도 편입(4도메인 동일 인물).
+- ✅ **작성자 자동 담당자 편입 폐지**(`0054`) — `0048`/`0049`로 도입했던 `created_by` 자동 담당자 편입·해제 차단 트리거를 제거. 현재 담당자는 작성자 여부와 무관하게 자유롭게 추가/해제.
 
 #### ✅ 소속 계층 개편 — 회사 > 그룹 > 팀 (2026-06-17, 발주자 확정)
 기존 단일 "본부/부서"를 **3단계 계층**으로 확장. 관리 단위 = **팀**(한 행 = 한 팀 = 하나의 '부서'). DB 테이블명은 영문 유지, 화면 라벨만 변경([11_departments.md](11_departments.md), [PATTERNS.md](PATTERNS.md) 14장).
@@ -109,7 +108,7 @@
 #### ✅ 매칭 프로그램 · 투자 자료실 (2026-06-21)
 지원사업 매칭 현황과 사내 투자 자료 게시판을 추가. 둘 다 기존 패턴 복제(신규 인프라 없음).
 - ✅ **매칭 프로그램(matching_programs)** — 부모 CRUD(검색=프로그램명·기관, 상태 필터) + **매칭 신청/연계 패널**(`matching_applications`: 스타트업×담당 심사역×상태×신청/선정일·매칭 지원금, 팝업 폼 추가·인라인 상태변경·연동 해제) + 섹션 토글·첨부파일. 현황 카드에 **선정 스타트업 수**(`selected` 집계). 메뉴=투자관리. 삭제=Admin. (`0057`)
-- ✅ **투자 자료실(invest_archives)** — 게시판형 CRUD(상단 고정 공지 최상단·카테고리 필터·제목/본문 검색·조회수 정렬) + 조회수 RPC(`increment_archive_views`) + 공통 첨부파일 카드. 수정/삭제=**작성자 본인·Admin**. 메뉴=투자관리. 섹션 토글(첨부파일). (`0058`)
+- ✅ **투자 자료실(invest_archives)** — 게시판형 CRUD(상단 고정 공지 최상단·제목/본문 검색·조회수 정렬, 카테고리 UI 폐지) + 조회수 RPC(`increment_archive_views`) + 공통 첨부파일 카드. 수정/삭제=**작성자 본인·Admin**. 메뉴=투자관리. 섹션 토글(첨부파일). (`0058`)
 - ✅ 첨부 `entity_type` 값만 추가(`matching_program`·`invest_archive`, VARCHAR·CHECK 없음 → 마이그레이션 불필요). 품질게이트(lint·typecheck·test·build) 통과.
 
 ### Phase 5 — 스마트 기능 ⬜ (미착수)
@@ -150,7 +149,7 @@
 | `0030_managers_sections.sql` | 심사역 카드 섹션 표시/숨김(sections jsonb, Admin 전용) | ✅ | [ ] |
 | `0031_entity_attachments.sql` | 첨부파일 카드(uploaded_files 폴리모픽 확장·attachment purpose·삭제정책) | ✅ | [ ] |
 | `0032_departments_sections.sql` | 소속 카드 섹션 표시/숨김(sections jsonb 신설) | ✅ | [x] |
-| `0033_projects_write.sql` | 프로젝트 메타 + INSERT/UPDATE RLS(삭제=책임자+관리자) | ✅ | [x] |
+| `0033_projects_write.sql` | 프로젝트 메타 + INSERT/UPDATE RLS(삭제=작성자+관리자) | ✅ | [x] |
 | `0034_project_managers.sql` | 프로젝트 담당자(다대다) 조인 + RLS | ✅ | [x] |
 | `0035_projects_type_stage_revision.sql` | 프로젝트 유형(기타 etc)·상태 CHECK·default 개편 | ✅ | [x] |
 | `0036_project_links_write.sql` | 프로젝트-스타트업/협력사 매핑 쓰기 RLS | ✅ | [x] |
@@ -160,30 +159,35 @@
 | `0040_fund_subrecords_write.sql` | capital_calls·fund_investments 쓰기 RLS(Admin) | ✅ | [ ] |
 | `0041_funds_sections.sql` | 펀드 카드 섹션 표시/숨김(sections jsonb) | ✅ | [ ] |
 | `0042_startup_metrics_fund.sql` | 투자현황 자사투자 ↔ 재원 펀드(fund_id) 연동 | ✅ | [ ] |
-| `0043_programs_write.sql` | 사업 메타 + INSERT/UPDATE RLS(삭제=책임자+관리자) | ✅ | [ ] |
+| `0043_programs_write.sql` | 사업 메타 + INSERT/UPDATE RLS(삭제=작성자+관리자) | ✅ | [ ] |
 | `0044_program_subrecords_write.sql` | business_managers·business_startups·business_events 쓰기 RLS | ✅ | [ ] |
 | `0045_programs_sections.sql` | 사업 카드 섹션 표시/숨김(sections jsonb) | ✅ | [ ] |
 | `0046_program_partners.sql` | 사업-협력사(기관) 연계 조인 테이블 + SELECT/쓰기 RLS | ✅ | [ ] |
 | `0047_fund_managers.sql` | 펀드 담당자(다대다) 조인 + RLS(배정=Admin) | ✅ | [ ] |
-| `0048_author_as_manager.sql` | 책임자(created_by) 담당자 자동 편입 + 해제 차단 트리거(프로젝트·스타트업·사업·펀드 공통, 사업=운영총괄) | ✅ | [ ] |
-| `0049_backfill_default_author.sql` | created_by NULL 레거시·시드를 대표 Admin 1명으로 백필 + 담당자 편입 | ✅ | [ ] |
+| `0048_author_as_manager.sql` | 작성자(created_by) 담당자 자동 편입 + 해제 차단 트리거(이후 `0054`로 폐지됨) | ✅ | [ ] |
+| `0049_backfill_default_author.sql` | created_by NULL 레거시·시드를 대표 Admin 1명으로 백필 + 담당자 편입(이후 담당자 편입분은 `0054`로 제거) | ✅ | [ ] |
 | `0050_departments_company.sql` | 소속 개편 1/3 — 그룹(departments)에 회사(company) 추가(고정 3종)·(회사,그룹명) UNIQUE | ✅ | [ ] |
 | `0051_teams.sql` | 소속 개편 2/3 — 팀(teams) 테이블 신설(소속 단위) + RLS(Admin) | ✅ | [ ] |
 | `0052_managers_team.sql` | 소속 개편 3/3 — managers.team_id 추가 + team_id→department_id 동기화 트리거 | ✅ | [ ] |
 | `0053_teams_name_optional.sql` | 팀명(teams.name) nullable 보정 + 유일성 인덱스 재정의(NULL 팀명 다수 허용) | ✅ | [ ] |
-| `0054_remove_author_as_manager.sql` | 책임자 자동 담당자 편입/해제차단 트리거 제거(0048 롤백) | ✅ | [ ] |
+| `0054_remove_author_as_manager.sql` | 작성자 자동 담당자 편입/해제차단 트리거 제거(0048 롤백, 현행 기준) | ✅ | [ ] |
 | `0055_rename_programs_to_business.sql` | **"프로그램 관리"→"사업 관리"** 전면 리네임 — programs/program_* 테이블·`program_id` 컬럼·정책·트리거·`sync_program_event_to_system`→`sync_business_event_to_system`·집계키 `activePrograms`→`activeBusinesses` + 데이터 값(`source_type`/`entity_type`='program'→'business') | ✅ | [ ] |
 | `0056_dashboard_split_project_types.sql` | 대시보드 집계 — 프로젝트 유형(M&A/신사업) 분리 카운트 | ✅ | [ ] |
 | `0057_matching_programs.sql` | **매칭 프로그램**(21) — matching_programs·matching_applications 테이블(sections·메타 포함)·RLS(프로그램 삭제=Admin, 신청 추가/수정/해제=전 직원) | ✅ | [ ] |
 | `0058_invest_archives.sql` | **투자 자료실**(22) — invest_archives 테이블(sections·메타 포함)·RLS(수정/삭제=작성자 본인·Admin)·`increment_archive_views` RPC | ✅ | [ ] |
+| `0059_business_status.sql` | 사업 진행 상태(`pending`·`in_progress`·`completed`·`suspended`·`canceled`) 정규화 | ✅ | [ ] |
+| `0060_business_project_finance.sql` | 사업·프로젝트 매출/이익 컬럼 추가(참여율 생산성 산출 선행) | ✅ | [ ] |
+| `0061_business_classification.sql` | 사업 분류/상태 보강 및 미사용 예산·모집마감 컬럼 정리 | ✅ | [ ] |
+| `0062_manager_participation.sql` | 사업·프로젝트 담당자 참여율/기간/잠금 컬럼 및 Admin 전용 수정 정책 | ✅ | [ ] |
+| `0063_gantt_milestone_schema.sql` | **간트 마일스톤 통합본** — business_events 확장·project_events 신설·상태/정렬/복수 담당자/URL/테스크 첨부·RLS·대시보드 동기화 | ✅ | [ ] |
 
-> ⚠️ `0008`~`0058`은 **번호 순서대로** 실행. 모두 재실행 안전(idempotent). 섹션 마이그레이션은 각 도메인 기존 UPDATE RLS 재사용(별도 정책 불필요). `0057`·`0058`은 신규 테이블이라 sections·메타 컬럼을 CREATE 에 포함(별도 sections 마이그레이션 없음).
-> **사용자 확인**: `0033`~`0037`은 RUN 완료(2026-06-17). `0038`~`0055`은 RUN 필요. (`0008`~`0032` DB 적용 여부는 사용자 환경 기준으로 갱신 요망.) `0053`은 `0051` teams 가 이미 생성된 DB 의 팀명 nullable 보정용(신규 DB 는 0051 만으로 충분). `0055`는 forward-only 리네임이라 과거 0001~0054 의 옛 명칭은 보존된다(신규 DB 는 0001 생성 → 0055 리네임 순서로 적용).
+> ⚠️ `0008`~`0063`은 **번호 순서대로** 실행. 모두 재실행 안전(idempotent). 섹션 마이그레이션은 각 도메인 기존 UPDATE RLS 재사용(별도 정책 불필요). `0057`·`0058`은 신규 테이블이라 sections·메타 컬럼을 CREATE 에 포함(별도 sections 마이그레이션 없음). `0063`은 기존 `0064`·`0065` 보강분을 흡수한 통합본이므로 새 DB에서는 `0063` 하나만 실행한다.
+> **사용자 확인**: `0033`~`0037`은 RUN 완료(2026-06-17). `0038`~`0063`은 RUN 필요. (`0008`~`0032` DB 적용 여부는 사용자 환경 기준으로 갱신 요망.) `0053`은 `0051` teams 가 이미 생성된 DB 의 팀명 nullable 보정용(신규 DB 는 0051 만으로 충분). `0055`는 forward-only 리네임이라 과거 0001~0054 의 옛 명칭은 보존된다(신규 DB 는 0001 생성 → 0055 리네임 순서로 적용).
 
 ---
 
 ## 다음 작업
-- 🔵 **발주자 육안 검토 → 조정 요청 반영** (현재 단계). `0038`~`0053` RUN 후 9개 도메인 + 양방향 + 담당자/책임자 표준화 + 소속(회사>그룹>팀) 동작 확인.
+- 🔵 **발주자 육안 검토 → 조정 요청 반영** (현재 단계). `0038`~`0063` RUN 후 전체 도메인 + 양방향 + 작성자/담당자 표준화 + 소속(회사>그룹>팀) + 간트 마일스톤 동작 확인.
 - ⬜ 남은 역방향 2건: 전문가 자문매칭 히스토리(입력 화면 포함) · 소속 본부장(`leader_id`) 임명/표시.
 - ⬜ 역방향 표 전환 확산: 소속(ul 목록 → 표 형태, PATTERNS 18.1). 심사역·협력사=완료(편집형).
 - ⬜ **Phase 5 스마트 기능**: PPTX 보고서 · AI 파트너(RAG) · 알림/감사로그 · Edge Function(계정 발급/관리).

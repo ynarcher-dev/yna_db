@@ -32,7 +32,7 @@ graph TD
    * *내용*: 로그인 세션(Zustand), 권한 가드 라우터, 공통 사이드바/헤더 레이아웃, 공통 UI 피드백 컴포넌트
    * *관련 문서*: [0_ui_ux.md](0_ui_ux.md), [1_overview.md](1_overview.md), [14_auth.md](14_auth.md), [17_conventions.md](17_conventions.md)
 3. **Phase 2 — 대시보드 (읽기 전용)**
-   * *내용*: 9대 도메인 현황 요약 카드(집계 RPC 호출) 및 다가오는 일정 타임라인
+   * *내용*: 핵심 도메인 현황 요약 카드(집계 RPC 호출, 프로젝트는 M&A/신사업 분리) 및 다가오는 일정 타임라인
    * *관련 문서*: [4_dashboard.md](4_dashboard.md), [16_aggregations.md](16_aggregations.md)
 4. **Phase 3 — 단순 CRUD 도메인 (고유 블록 우선)**
    * *내용*: 검색/필터/정렬/페이지네이션 및 기본 CRUD, RLS 정책 적용 (협력사 → 전문가 → 소속 → 심사역)
@@ -71,6 +71,7 @@ graph TD
 *   **[21. 매칭 프로그램 관리](21_matching_programs.md)**: 지원사업(TIPS, LIPS 등) 현황 관리 및 보육 기업 신청/선정/매칭 이력 모니터링
 *   **[22. 투자 자료실](22_invest_archives.md)**: 공통 서식, 템플릿, 시장분석 보고서 등 게시판형 투자 업무 자료 공유 기능
 *   **[23. 사업 마일스톤 간트차트](23_gantt_milestone.md)**: 기존 마일스톤 캘린더를 Gantt Chart 형식으로 개편하여 참여 선수(담당자)별 테스크를 자율적으로 조율하는 실무 협업 도구
+*   **[24. 전체 구현 현황 점검 및 작업 운영 가이드](24_project_audit_workflow.md)**: 현재 구현 화면·문서·마이그레이션 대조표 및 향후 작업 시 문서/SQL 누락 방지 규칙
 
 ### 🔧 시스템·운영 보강 명세
 *   **[14. 인증 및 계정 관리 화면](14_auth.md)**: 로그인/온보딩/비밀번호 재설정 화면 및 Admin 계정 관리·Edge Function 플로우

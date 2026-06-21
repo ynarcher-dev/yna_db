@@ -7,6 +7,9 @@
 | 1 | `migrations/0001_schema.sql` | 0_db_schema.md 2장 | 마스터 테이블 DDL + 프로젝트 단계 Trigger |
 | 2 | `migrations/0002_rls.sql` | 0_db_schema.md 3장 | RLS 활성화 + `current_user_role()` + CRUD 정책(대표 패턴) |
 
+> 전체 마이그레이션 적용 현황과 DB RUN 체크리스트는 [docs/PROGRESS.md](../docs/PROGRESS.md)의 "마이그레이션 적용 현황"을 기준으로 관리합니다.
+> 같은 기능의 보강 SQL은 DB 미적용 상태라면 새 번호를 만들지 않고 기존 파일에 통합합니다. 예: 간트 마일스톤 보강분은 `0063_gantt_milestone_schema.sql` 하나로 통합했습니다.
+
 ## 0번 범위 안내 (다음 단계에서 추가)
 
 아래는 0번(공통·표준 규격) 범위 밖이라 별도 단계에서 작성합니다.

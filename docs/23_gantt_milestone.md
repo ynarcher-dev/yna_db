@@ -22,9 +22,12 @@
 | :--- | :--- | :--- |
 | `start_date` | `date` | 테스크 시작일 (기존 `event_date` 데이터를 `start_date`로 이관 후 `event_date`는 deprecated 처리 또는 하위 호환 유지) |
 | `end_date` | `date` | 테스크 종료일 |
-| `manager_id` | `uuid` (FK) | 담당자 ID (`managers.id`, nullable) |
-| `progress` | `smallint` | 진행률 (0 ~ 100, 기본값 `0`, `CHECK (progress BETWEEN 0 AND 100)`) |
+| `manager_id` | `uuid` (FK) | 하위 호환용 단일 담당자 ID (`managers.id`, nullable) |
+| `manager_ids` | `uuid[]` | 담당자(선수) 복수 지정 |
+| `status` | `varchar(20)` | 진행 상태 (`pending` 대기, `in_progress` 진행중, `completed` 완료, `delayed` 지연) |
+| `sort_order` | `integer` | WBS/간트 행 수동 정렬 순서 |
 | `dependencies` | `uuid[]` | 선행 테스크 ID 배열 (선후관계 자율 관리를 위한 메타데이터 보관용, nullable) |
+| `urls` | `text[]` | 테스크 관련 링크 복수 보관 |
 
 > **선행 조건**: `start_date <= end_date` 제약 조건 추가.
 
@@ -44,9 +47,12 @@
 | `event_type` | `varchar(30)` | 일정 유형 (`meeting` 회의, `contract` 계약, `report` 보고, `milestone` 이정표, `other` 기타 등) |
 | `start_date` | `date` | 테스크 시작일 |
 | `end_date` | `date` | 테스크 종료일 |
-| `manager_id` | `uuid` (FK) | 담당자 ID (`managers.id`, nullable) |
-| `progress` | `smallint` | 진행률 (0 ~ 100, 기본값 `0`, `CHECK (progress BETWEEN 0 AND 100)`) |
+| `manager_id` | `uuid` (FK) | 하위 호환용 단일 담당자 ID (`managers.id`, nullable) |
+| `manager_ids` | `uuid[]` | 담당자(선수) 복수 지정 |
+| `status` | `varchar(20)` | 진행 상태 (`pending`, `in_progress`, `completed`, `delayed`) |
+| `sort_order` | `integer` | WBS/간트 행 수동 정렬 순서 |
 | `dependencies` | `uuid[]` | 선행 테스크 ID 배열 (선후관계 자율 관리를 위한 메타데이터 보관용, nullable) |
+| `urls` | `text[]` | 테스크 관련 링크 복수 보관 |
 | `description` | `text` | 상세 설명 |
 | `created_at` | `timestamp` | 등록 일시 |
 | `updated_at` | `timestamp` | 최종 수정 일시 (공통 `set_updated_at` 트리거 적용) |
@@ -67,9 +73,12 @@ export interface BusinessEvent {
   startDate: string; // YYYY-MM-DD
   endDate: string;   // YYYY-MM-DD
   managerId?: string;
+  managerIds: string[];
   managerName?: string; // 조인 정보
-  progress: number; // 0 ~ 100
+  status: 'pending' | 'in_progress' | 'completed' | 'delayed';
+  sortOrder: number;
   dependencies?: string[];
+  urls?: string[];
   description: string;
   createdAt: string;
 }
@@ -85,9 +94,12 @@ export interface ProjectEvent {
   startDate: string; // YYYY-MM-DD
   endDate: string;   // YYYY-MM-DD
   managerId?: string;
+  managerIds: string[];
   managerName?: string; // 조인 정보
-  progress: number; // 0 ~ 100
+  status: 'pending' | 'in_progress' | 'completed' | 'delayed';
+  sortOrder: number;
   dependencies?: string[];
+  urls?: string[];
   description: string;
   createdAt: string;
 }
@@ -99,19 +111,19 @@ export interface ProjectEvent {
 
 ### 1) 간트차트 컴포넌트 (`gantt-task-react` 활용)
 * **공통 레이아웃 구성**:
-  * **좌측 (WBS 테이블)**: 테스크명, 담당자(선수), 진행률(%), 기간(시작일 ~ 종료일)을 표시합니다.
+  * **좌측 (WBS 테이블)**: 테스크명, 담당자(선수), 진행 상태, 기간(시작일 ~ 종료일)을 표시합니다.
   * **우측 (타임라인 차트)**:
     * 사업/프로젝트의 시작일(`startDate`)과 종료일(`endDate`)을 기준으로 차트 영역의 범위를 제한하여 렌더링합니다.
     * 오늘 일정을 직관적으로 파악할 수 있도록 **현재 시점 세로 점선(Today Line)**을 표시합니다.
     * 담당자(선수)별로 다른 바(Bar) 색상을 지정하거나 테스크 상태에 따라 시각적인 차이를 부여합니다.
 * **인터랙션 및 자율 관리**:
-  * 마우스 드래그를 통해 테스크의 시작일, 종료일, 진행률을 조절할 수 있습니다.
+  * 마우스 드래그를 통해 테스크의 시작일과 종료일을 조절할 수 있고, 행 순서는 `sort_order`로 수동 저장합니다.
   * **선후관계 자율성**: `dependencies` 정보가 등록되어 있더라도 다른 테스크의 날짜 이동에 의해 이 테스크의 날짜가 강제 조정되지 않아야 하며, 개별 테스크는 타임라인 상에서 독립적이고 자유롭게 움직일 수 있어야 합니다.
 
 ### 2) 프로젝트 상세 페이지 연계 (`ProjectDetailView.tsx`)
 * 프로젝트 상세에서 일정을 켜고 끌 수 있는 `calendar` 섹션을 `sections` JSONB 설정에 추가합니다.
   * `sections.calendar ? <ProjectCalendarBlock projectId={project.id} /> : null`
-* 테스크 생성 및 수정 시, **담당 선수** 목록은 해당 프로젝트에 배정된 담당자(`project_managers`) 목록에서 바인딩하여 드롭다운 선택창으로 제공합니다.
+  * 테스크 생성 및 수정 시, **담당 선수** 목록은 해당 프로젝트에 배정된 담당자(`project_managers`) 목록에서 바인딩하여 복수 선택창으로 제공합니다.
 * 날짜 입력 시 프로젝트 진행 기간(`startDate` ~ `endDate`)을 벗어나지 않도록 DatePicker 범위를 검증 및 차단합니다.
 
 ---
@@ -128,9 +140,10 @@ export interface ProjectEvent {
 ## 23.5 구현 가이드 (개발 에이전트 참고용)
 
 1. **DB 마이그레이션**:
-   - `supabase/migrations/0063_gantt_milestone_schema.sql` 파일을 생성합니다.
+   - `supabase/migrations/0063_gantt_milestone_schema.sql` 파일에 간트 마일스톤 최종 스키마를 통합합니다. 같은 기능에 대한 보강 요청은 DB 미적용 상태라면 새 번호를 만들지 않고 이 파일에 흡수합니다.
    - `business_events` 테이블 컬럼 추가 및 기존 데이터 마이그레이션 (`event_date` 값을 `start_date`, `end_date`로 안전하게 이전).
    - `project_events` 테이블 신설 및 RLS 정책 생성.
+   - 테스크 첨부 귀속을 위해 `uploaded_files.event_id`를 추가합니다.
    - `project_events` 생성/변경/삭제 시 대시보드 일정 테이블인 `system_events`에 동기화되는 `sync_project_event_to_system` 함수 및 트리거 작성.
 2. **패키지 추가**:
    - `npm i gantt-task-react`

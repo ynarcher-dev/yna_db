@@ -35,7 +35,7 @@
 *   **담당 스타트업 연계(다대다)**: `startup_managers` 조인(`manager_id`) -> 담당 스타트업 목록. (초기 단수 `startups.manager_id`는 앱 미사용)
 *   **담당 프로젝트 연계(다대다)**: `project_managers` 조인(`manager_id`) -> 담당 M&A/신사업 프로젝트. (초기 단수 `projects.manager_id`는 앱 미사용)
 *   **운영 사업 연계(다대다)**: `business_managers` 조인(`manager_id`, `role`) -> 운영 중인 배치 사업 + 운영 역할(운영총괄/운영담당).
-*   **책임자 자동 편입**: 본인이 책임자(`created_by`)인 게시글의 담당자 조인에는 트리거로 자동 편입되며 해제 불가([PATTERNS.md](PATTERNS.md) 17장).
+*   **책임자와 담당자 분리**: 본인이 책임자(`created_by`)인 게시글이라도 담당자 조인에는 자동 편입되지 않습니다. 자동 편입/해제 차단 규칙은 [0054_remove_author_as_manager.sql](../supabase/migrations/0054_remove_author_as_manager.sql)로 폐지되었고, 담당자는 각 상세 화면에서 자유롭게 추가/해제합니다([PATTERNS.md](PATTERNS.md) 17장).
 
 ### 🏷️ TypeScript Interface: `Manager`
 ```typescript
@@ -64,6 +64,7 @@ interface Manager {
   departmentId: string;   // 소속 그룹 id (팀의 상위 그룹)
   departmentName: string; // 소속 그룹명
   companyName: string;    // 소속 회사명
+  sections: ManagerSections;
 }
 ```
 
