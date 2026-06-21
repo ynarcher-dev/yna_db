@@ -1,41 +1,39 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabaseClient';
-import { mapBusinessEventRow, type BusinessEvent, type BusinessEventRow } from '@/types/businessEvent';
-import type { BusinessEventInput } from '@/schemas/businessEvent';
+import { mapProjectEventRow, type ProjectEvent, type ProjectEventRow } from '@/types/projectEvent';
+import type { ProjectEventInput } from '@/schemas/projectEvent';
 import type { EventStatus } from '@/types/database';
 
 /**
- * 사업 세부 일정(테스크) 데이터 훅 (business_events, 23_gantt_milestone.md).
- * 간트차트: 시작·종료일·담당자·상태·정렬순서. 담당자 이름은 조인 임베드한다.
- * 추가/수정/삭제 시 0055 동기화 트리거가 system_events(대시보드 다가오는 일정)도 함께 갱신한다.
+ * 프로젝트 세부 일정(테스크) 데이터 훅 (project_events, 23_gantt_milestone.md).
+ * 사업 일정(useBusinessEvents)과 동일 패턴. 추가/수정/삭제 시 0063 동기화 트리거가
+ * system_events(대시보드 다가오는 일정)도 함께 갱신한다.
  */
-const TABLE = 'business_events';
+const TABLE = 'project_events';
 
-export function useBusinessEvents(businessId: string | undefined) {
+export function useProjectEvents(projectId: string | undefined) {
   const query = useQuery({
-    queryKey: [TABLE, businessId],
-    enabled: Boolean(businessId),
-    queryFn: async (): Promise<BusinessEvent[]> => {
+    queryKey: [TABLE, projectId],
+    enabled: Boolean(projectId),
+    queryFn: async (): Promise<ProjectEvent[]> => {
       const { data, error } = await supabase
         .from(TABLE)
         .select('*')
-        .eq('business_id', businessId as string)
+        .eq('project_id', projectId as string)
         .order('sort_order', { ascending: true })
         .order('start_date', { ascending: true });
       if (error) throw error;
-      return (data as unknown as BusinessEventRow[]).map(mapBusinessEventRow);
+      return (data as unknown as ProjectEventRow[]).map(mapProjectEventRow);
     },
   });
   return { ...query, events: query.data ?? [] };
 }
 
-function toRow(businessId: string, input: BusinessEventInput) {
+function toRow(projectId: string, input: ProjectEventInput) {
   const urls = input.urls.map((u) => u.trim()).filter(Boolean);
   return {
-    business_id: businessId,
+    project_id: projectId,
     title: input.title.trim(),
-    // event_date(deprecated) 는 하위 호환을 위해 start_date 와 동일하게 유지한다.
-    event_date: input.startDate,
     start_date: input.startDate,
     end_date: input.endDate,
     // manager_id(레거시 단일)는 첫 담당자로 보정, manager_ids(다중)를 정식 저장.
@@ -48,17 +46,16 @@ function toRow(businessId: string, input: BusinessEventInput) {
   };
 }
 
-export function useBusinessEventMutations(businessId: string) {
+export function useProjectEventMutations(projectId: string) {
   const qc = useQueryClient();
-  const invalidate = () => qc.invalidateQueries({ queryKey: [TABLE, businessId] });
+  const invalidate = () => qc.invalidateQueries({ queryKey: [TABLE, projectId] });
 
   const create = useMutation({
-    mutationFn: async (input: BusinessEventInput): Promise<string> => {
-      // 신규 행은 정렬 맨 뒤로(큰 sort_order). 이후 드래그 재정렬 시 1..N 으로 재기록된다.
+    mutationFn: async (input: ProjectEventInput): Promise<string> => {
       // 파일 첨부를 새 테스크에 연결할 수 있도록 생성된 id 를 반환한다.
       const { data, error } = await supabase
         .from(TABLE)
-        .insert({ ...toRow(businessId, input), sort_order: Math.floor(Date.now() / 1000) })
+        .insert({ ...toRow(projectId, input), sort_order: Math.floor(Date.now() / 1000) })
         .select('id')
         .single();
       if (error) throw error;
@@ -68,14 +65,13 @@ export function useBusinessEventMutations(businessId: string) {
   });
 
   const update = useMutation({
-    mutationFn: async ({ id, input }: { id: string; input: BusinessEventInput }) => {
-      const { error } = await supabase.from(TABLE).update(toRow(businessId, input)).eq('id', id);
+    mutationFn: async ({ id, input }: { id: string; input: ProjectEventInput }) => {
+      const { error } = await supabase.from(TABLE).update(toRow(projectId, input)).eq('id', id);
       if (error) throw error;
     },
     onSuccess: invalidate,
   });
 
-  // 간트 드래그(날짜 이동)·인라인 상태 변경용 부분 갱신.
   const patch = useMutation({
     mutationFn: async ({
       id,
@@ -85,10 +81,7 @@ export function useBusinessEventMutations(businessId: string) {
       changes: { startDate?: string; endDate?: string; status?: EventStatus };
     }) => {
       const payload: Record<string, unknown> = {};
-      if (changes.startDate !== undefined) {
-        payload.start_date = changes.startDate;
-        payload.event_date = changes.startDate;
-      }
+      if (changes.startDate !== undefined) payload.start_date = changes.startDate;
       if (changes.endDate !== undefined) payload.end_date = changes.endDate;
       if (changes.status !== undefined) payload.status = changes.status;
       const { error } = await supabase.from(TABLE).update(payload).eq('id', id);
@@ -97,7 +90,6 @@ export function useBusinessEventMutations(businessId: string) {
     onSuccess: invalidate,
   });
 
-  // 간트 행 순서 재정렬 — 드래그 후 새 순서대로 sort_order 를 1..N 으로 재기록한다.
   const reorder = useMutation({
     mutationFn: async (orderedIds: string[]) => {
       for (let i = 0; i < orderedIds.length; i += 1) {

@@ -77,6 +77,8 @@ export interface EntityFile {
   contentType: string;
   /** 업로더(managers.id). 없으면 null */
   ownerId: string | null;
+  /** 종속 테스크(business_events·project_events.id). 일반 첨부는 null */
+  eventId: string | null;
   createdAt: string;
 }
 
@@ -87,6 +89,7 @@ export interface EntityFileRow {
   file_size: number;
   content_type: string;
   owner_id: string | null;
+  event_id: string | null;
   created_at: string;
 }
 
@@ -98,6 +101,7 @@ export function mapEntityFileRow(row: EntityFileRow): EntityFile {
     size: row.file_size,
     contentType: row.content_type,
     ownerId: row.owner_id,
+    eventId: row.event_id ?? null,
     createdAt: row.created_at,
   };
 }

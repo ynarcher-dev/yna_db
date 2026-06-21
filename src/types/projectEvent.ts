@@ -1,13 +1,13 @@
 import type { EventStatus } from './database';
 
 /**
- * 사업 세부 일정(테스크) 1건 (business_events, 23_gantt_milestone.md).
- * 간트차트 구조: 시작·종료일, 담당자(선수), 진행 상태, 정렬 순서, 선후관계 메타.
+ * 프로젝트 세부 일정(테스크) 1건 (project_events, 23_gantt_milestone.md).
+ * 사업(business_events)과 동일한 간트차트 구조 — 시작·종료일, 담당자, 상태, 정렬, 선후관계.
  * 저장/삭제 시 start_date 기준으로 system_events(대시보드 다가오는 일정)에 자동 동기화된다.
  */
-export interface BusinessEvent {
+export interface ProjectEvent {
   id: string;
-  businessId: string;
+  projectId: string;
   title: string;
   /** 테스크 시작일 (YYYY-MM-DD) */
   startDate: string;
@@ -27,14 +27,12 @@ export interface BusinessEvent {
   createdAt: string;
 }
 
-export interface BusinessEventRow {
+export interface ProjectEventRow {
   id: string;
-  business_id: string;
+  project_id: string;
   title: string;
-  /** deprecated — start_date 로 이관됨(하위 호환 유지) */
-  event_date: string | null;
-  start_date: string | null;
-  end_date: string | null;
+  start_date: string;
+  end_date: string;
   manager_id: string | null;
   manager_ids: string[] | null;
   status: EventStatus | null;
@@ -45,9 +43,7 @@ export interface BusinessEventRow {
   created_at: string;
 }
 
-export function mapBusinessEventRow(row: BusinessEventRow): BusinessEvent {
-  const start = row.start_date ?? row.event_date ?? '';
-  // 다중 담당자(manager_ids) 우선, 비어있으면 레거시 단일 manager_id 로 보정.
+export function mapProjectEventRow(row: ProjectEventRow): ProjectEvent {
   const managerIds = row.manager_ids?.length
     ? row.manager_ids
     : row.manager_id
@@ -55,10 +51,10 @@ export function mapBusinessEventRow(row: BusinessEventRow): BusinessEvent {
       : [];
   return {
     id: row.id,
-    businessId: row.business_id,
+    projectId: row.project_id,
     title: row.title,
-    startDate: start,
-    endDate: row.end_date ?? start,
+    startDate: row.start_date,
+    endDate: row.end_date,
     managerIds,
     status: row.status ?? 'pending',
     sortOrder: row.sort_order ?? 0,

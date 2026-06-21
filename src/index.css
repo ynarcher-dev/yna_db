@@ -18,3 +18,18 @@ body {
   margin: 0;
   background-color: #f5f5f5; /* yna-bg 전체 레이아웃 배경 */
 }
+
+/*
+ * 간트차트(gantt-task-react) 상단 캘린더 헤더를 좌측 WBS 헤더와 동일한 톤으로 정렬한다
+ * (23_gantt_milestone.md). 라이브러리가 CSS Module 해시 클래스를 쓰므로 .yna-gantt 안에서만
+ * 해당 해시를 덮어쓴다 — gantt-task-react 버전 업 시 해시가 바뀌면 함께 갱신해야 한다.
+ */
+.yna-gantt svg ._35nLX {
+  fill: #e8e8e8; /* 데이터 테이블 헤더(theme.Table.headerBg)와 동일 톤 */
+  stroke: #e5e5e5; /* yna-border */
+}
+.yna-gantt svg ._2q1Kt,
+.yna-gantt svg ._9w8d5 {
+  fill: #8c8c8c; /* yna-sub — 헤더(월/주차) 텍스트 */
+  font-weight: 600;
+}

@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button, Space, Descriptions } from 'antd';
 import { HiArrowLeft } from 'react-icons/hi';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useBusiness, useBusinessMutations } from '@/hooks/useBusinesses';
+import { useBusinessEvents } from '@/hooks/useBusinessEvents';
 import { useAuthStore } from '@/stores/authStore';
 import { useAppToast } from '@/components/common/useAppToast';
 import { TableSkeleton } from '@/components/common/TableSkeleton';
@@ -31,6 +32,12 @@ export function BusinessDetailView() {
 
   const { data: business, isLoading, isError, refetch } = useBusiness(id);
   const { remove } = useBusinessMutations();
+  // 첨부파일 카드에 '종속 테스크' 라벨을 붙이기 위한 일정 id→제목 맵(간트와 캐시 공유).
+  const { events } = useBusinessEvents(id);
+  const eventTitleMap = useMemo(
+    () => Object.fromEntries(events.map((e) => [e.id, e.title])),
+    [events],
+  );
 
   if (isLoading) return <TableSkeleton rows={4} />;
   if (isError || !business) {
@@ -124,12 +131,22 @@ export function BusinessDetailView() {
       {/* 참여 협력사(기관) 매핑 (business_partners) */}
       {business.sections.partners ? <BusinessPartnersPanel businessId={business.id} /> : null}
 
-      {/* 마일스톤 캘린더 (business_events → 대시보드 자동 동기화) */}
-      {business.sections.calendar ? <BusinessCalendarBlock businessId={business.id} /> : null}
+      {/* 마일스톤 (간트/달력) — business_events → 대시보드 자동 동기화 */}
+      {business.sections.calendar ? (
+        <BusinessCalendarBlock
+          businessId={business.id}
+          rangeStart={business.startDate}
+          rangeEnd={business.endDate}
+        />
+      ) : null}
 
       {/* 첨부파일 (전 도메인 공통 카드) */}
       {business.sections.attachments ? (
-        <EntityFilesBlock entityType="business" entityId={business.id} />
+        <EntityFilesBlock
+          entityType="business"
+          entityId={business.id}
+          eventTitleMap={eventTitleMap}
+        />
       ) : null}
 
       <BusinessFormDrawer

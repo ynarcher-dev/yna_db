@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button, Space, Descriptions } from 'antd';
 import { HiArrowLeft } from 'react-icons/hi';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useProject, useProjectMutations } from '@/hooks/useProjects';
+import { useProjectEvents } from '@/hooks/useProjectEvents';
 import { useAuthStore } from '@/stores/authStore';
 import { useAppToast } from '@/components/common/useAppToast';
 import { TableSkeleton } from '@/components/common/TableSkeleton';
@@ -13,6 +14,7 @@ import { ProjectPriorityTag } from '@/components/projects/ProjectPriorityTag';
 import { ProjectFormDrawer } from '@/components/projects/ProjectFormDrawer';
 import { EntityManagersPanel } from '@/components/common/EntityManagersPanel';
 import { ProjectLinksPanel } from '@/components/projects/ProjectLinksPanel';
+import { ProjectCalendarBlock } from '@/components/projects/ProjectCalendarBlock';
 import { EntityFilesBlock } from '@/components/common/EntityFilesBlock';
 import { formatDate, formatKRW } from '@/lib/formatters';
 import type { ProjectDomain } from './projectDomain';
@@ -33,6 +35,12 @@ export function ProjectDetailView({ domain }: { domain: ProjectDomain }) {
 
   const { data: project, isLoading, isError, refetch } = useProject(id);
   const { remove } = useProjectMutations();
+  // 첨부파일 카드에 '종속 테스크' 라벨을 붙이기 위한 일정 id→제목 맵(간트와 캐시 공유).
+  const { events } = useProjectEvents(id);
+  const eventTitleMap = useMemo(
+    () => Object.fromEntries(events.map((e) => [e.id, e.title])),
+    [events],
+  );
 
   if (isLoading) return <TableSkeleton rows={4} />;
   if (isError || !project) {
@@ -133,9 +141,22 @@ export function ProjectDetailView({ domain }: { domain: ProjectDomain }) {
         </div>
       ) : null}
 
+      {/* 마일스톤 (간트/달력) — project_events → 대시보드 자동 동기화 */}
+      {project.sections.calendar ? (
+        <ProjectCalendarBlock
+          projectId={project.id}
+          rangeStart={project.startDate}
+          rangeEnd={project.endDate || undefined}
+        />
+      ) : null}
+
       {/* 첨부파일 (전 도메인 공통 카드) */}
       {project.sections.attachments ? (
-        <EntityFilesBlock entityType="project" entityId={project.id} />
+        <EntityFilesBlock
+          entityType="project"
+          entityId={project.id}
+          eventTitleMap={eventTitleMap}
+        />
       ) : null}
 
       <ProjectFormDrawer

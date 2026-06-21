@@ -111,6 +111,7 @@ export async function uploadEntityFile(
   file: File,
   entityType: AttachmentEntityType,
   entityId: string,
+  eventId?: string,
 ): Promise<void> {
   const { data: auth } = await supabase.auth.getUser();
   const ownerId = auth.user?.id ?? null;
@@ -126,6 +127,8 @@ export async function uploadEntityFile(
     purpose: 'attachment' satisfies FilePurpose,
     entity_type: entityType,
     entity_id: entityId,
+    // 테스크(일정) 드로어에서 올린 파일은 event_id 로 종속 테스크를 식별한다(NULL=일반 첨부).
+    event_id: eventId ?? null,
     file_name: file.name,
     s3_key: path,
     content_type: file.type || 'application/octet-stream',

@@ -39,10 +39,13 @@ export function EntityFilesBlock({
   entityType,
   entityId,
   title = '첨부파일',
+  eventTitleMap,
 }: {
   entityType: AttachmentEntityType;
   entityId: string;
   title?: string;
+  /** 테스크(일정) id → 제목. 간트 드로어에서 올린 파일에 '종속 테스크'를 표시하기 위함 */
+  eventTitleMap?: Record<string, string>;
 }) {
   const toast = useAppToast();
   const { data: files = [], isLoading } = useEntityFiles(entityType, entityId);
@@ -147,6 +150,11 @@ export function EntityFilesBlock({
                 >
                   {f.name}
                 </button>
+                {f.eventId && eventTitleMap?.[f.eventId] ? (
+                  <span className="shrink-0 rounded bg-yna-bg px-1.5 py-0.5 text-xs text-yna-sub">
+                    {eventTitleMap[f.eventId]}
+                  </span>
+                ) : null}
                 <span className="shrink-0 text-xs text-yna-sub">{formatBytes(f.size)}</span>
                 <Button
                   size="small"

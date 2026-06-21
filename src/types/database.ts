@@ -43,6 +43,12 @@ export type BusinessManagerRole = 'lead' | 'operator';
 /** 공통 일정 유형 (business_events / system_events) */
 export type EventType = 'recruitment' | 'demoday' | 'networking' | 'meeting' | 'ir' | 'event';
 
+/** 프로젝트 일정 유형 (project_events, 23_gantt_milestone.md) */
+export type ProjectEventType = 'meeting' | 'contract' | 'report' | 'milestone' | 'other';
+
+/** 일정(테스크) 진행 상태 (business_events·project_events.status, 23_gantt_milestone.md) */
+export type EventStatus = 'pending' | 'in_progress' | 'completed' | 'delayed';
+
 /** 전문가 유형 (experts.expert_type) */
 export type ExpertType = 'mentor' | 'auditor' | 'advisor';
 

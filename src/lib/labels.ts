@@ -8,6 +8,8 @@ import type {
   MatchingApplicationStatus,
   MatchingProgramStatus,
   PartnerType,
+  ProjectEventType,
+  EventStatus,
   BusinessManagerRole,
   BusinessStartupStatus,
   BusinessStatus,
@@ -79,6 +81,84 @@ export const EVENT_TYPE_COLOR: Record<EventType, string> = {
   meeting: '#8c8c8c',
   ir: '#8c8c8c',
   event: '#8c8c8c',
+};
+
+/**
+ * 프로젝트 일정 유형 한국어 라벨 (project_events.event_type, 23_gantt_milestone.md).
+ * 간트차트 테스크/마일스톤 유형 — 회의·계약·보고·이정표·기타.
+ */
+export const PROJECT_EVENT_TYPE_LABEL: Record<ProjectEventType, string> = {
+  meeting: '회의',
+  contract: '계약',
+  report: '보고',
+  milestone: '이정표',
+  other: '기타',
+};
+
+export const PROJECT_EVENT_TYPE_VALUES = [
+  'meeting',
+  'contract',
+  'report',
+  'milestone',
+  'other',
+] as const;
+
+export const PROJECT_EVENT_TYPE_OPTIONS = (
+  Object.keys(PROJECT_EVENT_TYPE_LABEL) as ProjectEventType[]
+).map((value) => ({ value, label: PROJECT_EVENT_TYPE_LABEL[value] }));
+
+/** 일정 유형별 색상(#HEX, 간트 바/캘린더 이벤트 색). 유형 배지 규칙상 회색으로 통일. */
+export const PROJECT_EVENT_TYPE_COLOR: Record<ProjectEventType, string> = {
+  meeting: '#8c8c8c',
+  contract: '#8c8c8c',
+  report: '#8c8c8c',
+  milestone: '#8c8c8c',
+  other: '#8c8c8c',
+};
+
+/**
+ * 일정(테스크) 진행 상태 (business_events·project_events.status, 23_gantt_milestone.md).
+ * 진행률(%) 대신 상태 4단계로 관리한다 — 대기/진행중/완료/지연.
+ */
+export const EVENT_STATUS_VALUES = ['pending', 'in_progress', 'completed', 'delayed'] as const;
+
+export const EVENT_STATUS_LABEL: Record<EventStatus, string> = {
+  pending: '대기',
+  in_progress: '진행중',
+  completed: '완료',
+  delayed: '지연',
+};
+
+export const EVENT_STATUS_OPTIONS = (Object.keys(EVENT_STATUS_LABEL) as EventStatus[]).map(
+  (value) => ({ value, label: EVENT_STATUS_LABEL[value] }),
+);
+
+/** 상태 톤 — 대기=gold(중간), 진행중=green, 완료=blue(종료), 지연=red(주의). 뱃지 규칙과 동일. */
+export const EVENT_STATUS_COLOR: Record<EventStatus, BadgeTone> = {
+  pending: 'gold',
+  in_progress: 'green',
+  completed: 'blue',
+  delayed: 'red',
+};
+
+/**
+ * BadgeTone → 대표 색(#HEX, antd 프리셋 동일값). 솔리드 채색(간트 바 등)을 뱃지와 같은 색군으로 맞춘다.
+ * 뱃지 Tag(연한 배경+색 텍스트)와 바(솔리드)는 채도만 다르고 색상(hue)은 동일하다.
+ */
+export const BADGE_TONE_HEX: Record<BadgeTone, string> = {
+  red: '#ff4d4f',
+  blue: '#1677ff',
+  green: '#52c41a',
+  gold: '#faad14',
+  neutral: '#8c8c8c',
+};
+
+/** 상태별 간트 바 색상 — 뱃지 톤(EVENT_STATUS_COLOR)에서 파생해 항상 뱃지와 일치한다. */
+export const EVENT_STATUS_BAR_COLOR: Record<EventStatus, string> = {
+  pending: BADGE_TONE_HEX[EVENT_STATUS_COLOR.pending],
+  in_progress: BADGE_TONE_HEX[EVENT_STATUS_COLOR.in_progress],
+  completed: BADGE_TONE_HEX[EVENT_STATUS_COLOR.completed],
+  delayed: BADGE_TONE_HEX[EVENT_STATUS_COLOR.delayed],
 };
 
 export const PARTNER_TYPE_LABEL: Record<PartnerType, string> = {

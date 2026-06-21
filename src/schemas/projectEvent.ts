@@ -2,10 +2,10 @@ import { z } from 'zod';
 import { EVENT_STATUS_VALUES } from '@/lib/labels';
 
 /**
- * 사업 세부 일정(테스크) 등록/수정 검증 (business_events, 23_gantt_milestone.md).
- * 유형(event_type) 입력은 폐지되고, 진행은 상태(대기/진행중/완료/지연)로 관리한다.
+ * 프로젝트 세부 일정(테스크) 등록/수정 검증 (project_events, 23_gantt_milestone.md).
+ * 사업 일정과 동일 — 유형 입력 폐지, 진행은 상태(대기/진행중/완료/지연)로 관리한다.
  */
-export const businessEventSchema = z
+export const projectEventSchema = z
   .object({
     title: z.string().min(1, '일정 제목을 입력해 주세요.').max(150),
     startDate: z.string().min(1, '시작일을 선택해 주세요.').max(10),
@@ -34,9 +34,9 @@ export const businessEventSchema = z
     }
   });
 
-export type BusinessEventInput = z.infer<typeof businessEventSchema>;
+export type ProjectEventInput = z.infer<typeof projectEventSchema>;
 
-export function emptyBusinessEventInput(startDate = '', endDate = ''): BusinessEventInput {
+export function emptyProjectEventInput(startDate = '', endDate = ''): ProjectEventInput {
   return {
     title: '',
     startDate,

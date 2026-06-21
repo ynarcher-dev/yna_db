@@ -4,31 +4,30 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Drawer, Button, Input, Select, DatePicker } from 'antd';
 import dayjs from 'dayjs';
 import {
-  businessEventSchema,
-  emptyBusinessEventInput,
-  type BusinessEventInput,
-} from '@/schemas/businessEvent';
-import { useBusinessEventMutations } from '@/hooks/useBusinessEvents';
+  projectEventSchema,
+  emptyProjectEventInput,
+  type ProjectEventInput,
+} from '@/schemas/projectEvent';
+import { useProjectEventMutations } from '@/hooks/useProjectEvents';
 import { useEventFileMutations } from '@/hooks/useEntityFiles';
 import { useAppToast } from '@/components/common/useAppToast';
 import { UrlListField } from '@/components/common/UrlListField';
 import { EventFilesField } from '@/components/common/EventFilesField';
 import { EVENT_STATUS_OPTIONS } from '@/lib/labels';
-import type { BusinessEvent } from '@/types/businessEvent';
+import type { ProjectEvent } from '@/types/projectEvent';
 
 function FieldError({ message }: { message?: string }) {
   return message ? <p className="mt-1 text-xs text-yna-point">{message}</p> : null;
 }
 
 /**
- * 사업 일정(테스크) 등록/수정 Drawer (23_gantt_milestone.md). 저장/삭제 시 system_events 동기화.
- * 간트 확장: 시작·종료일, 담당자(선수), 진행률을 함께 입력한다.
- * - 담당자 후보는 사업에 배정된 담당자 목록(managerOptions)에서만 선택한다.
- * - 날짜는 사업 진행 기간(rangeStart~rangeEnd)을 벗어나지 않도록 DatePicker 를 제한한다.
+ * 프로젝트 일정(테스크) 등록/수정 Drawer (23_gantt_milestone.md). 저장/삭제 시 system_events 동기화.
+ * 사업 일정 Drawer 와 동일 구조 — 담당자 후보는 프로젝트에 배정된 담당자 목록에서만 선택하고,
+ * 날짜는 프로젝트 진행 기간(rangeStart~rangeEnd)을 벗어나지 않도록 제한한다.
  */
-export function BusinessEventFormDrawer({
+export function ProjectEventFormDrawer({
   open,
-  businessId,
+  projectId,
   event,
   managerOptions,
   rangeStart,
@@ -36,16 +35,16 @@ export function BusinessEventFormDrawer({
   onClose,
 }: {
   open: boolean;
-  businessId: string;
-  event?: BusinessEvent;
+  projectId: string;
+  event?: ProjectEvent;
   managerOptions: { value: string; label: string }[];
   rangeStart?: string;
   rangeEnd?: string;
   onClose: () => void;
 }) {
   const isEdit = Boolean(event);
-  const { create, update, remove } = useBusinessEventMutations(businessId);
-  const { upload } = useEventFileMutations('business', businessId);
+  const { create, update, remove } = useProjectEventMutations(projectId);
+  const { upload } = useEventFileMutations('project', projectId);
   const toast = useAppToast();
   // 새로 고른(아직 업로드 전) 파일 — 저장 시 생성/수정된 테스크 id 로 일괄 업로드.
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
@@ -55,13 +54,12 @@ export function BusinessEventFormDrawer({
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<BusinessEventInput>({
-    resolver: zodResolver(businessEventSchema),
+  } = useForm<ProjectEventInput>({
+    resolver: zodResolver(projectEventSchema),
     mode: 'onBlur',
-    defaultValues: emptyBusinessEventInput(),
+    defaultValues: emptyProjectEventInput(),
   });
 
-  // 진행 기간 밖 날짜를 막는다(엔티티 시작 이전·종료 이후 비활성).
   const disabledDate = (d: dayjs.Dayjs) => {
     if (rangeStart && d.isBefore(dayjs(rangeStart), 'day')) return true;
     if (rangeEnd && d.isAfter(dayjs(rangeEnd), 'day')) return true;
@@ -83,11 +81,11 @@ export function BusinessEventFormDrawer({
             urls: event.urls,
             description: event.description,
           }
-        : emptyBusinessEventInput(rangeStart, rangeStart),
+        : emptyProjectEventInput(rangeStart, rangeStart),
     );
   }, [open, event, rangeStart, reset]);
 
-  const onSubmit = async (values: BusinessEventInput) => {
+  const onSubmit = async (values: ProjectEventInput) => {
     try {
       const eventId =
         isEdit && event
@@ -132,7 +130,7 @@ export function BusinessEventFormDrawer({
             <Controller
               name="title"
               control={control}
-              render={({ field }) => <Input {...field} placeholder="예: 데모데이 준비" />}
+              render={({ field }) => <Input {...field} placeholder="예: 실사 미팅" />}
             />
             <FieldError message={errors.title?.message} />
           </div>
@@ -236,8 +234,8 @@ export function BusinessEventFormDrawer({
           <div>
             <label className="mb-1 block text-sm text-yna-main">파일 첨부</label>
             <EventFilesField
-              entityType="business"
-              entityId={businessId}
+              entityType="project"
+              entityId={projectId}
               eventId={event?.id}
               pendingFiles={pendingFiles}
               onPendingChange={setPendingFiles}

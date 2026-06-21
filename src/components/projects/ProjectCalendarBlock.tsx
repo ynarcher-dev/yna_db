@@ -1,36 +1,35 @@
 import { useMemo, useState } from 'react';
 import { Button } from 'antd';
 import { HiOutlinePlus } from 'react-icons/hi';
-import { useBusinessEvents, useBusinessEventMutations } from '@/hooks/useBusinessEvents';
+import { useProjectEvents, useProjectEventMutations } from '@/hooks/useProjectEvents';
 import { useEntityManagers } from '@/hooks/useEntityManagers';
-import { BusinessEventFormDrawer } from './BusinessEventFormDrawer';
+import { ProjectEventFormDrawer } from './ProjectEventFormDrawer';
 import { MilestoneGantt, type GanttItem } from '@/components/common/MilestoneGantt';
 import { useAppToast } from '@/components/common/useAppToast';
 import type { EventStatus } from '@/types/database';
-import type { BusinessEvent } from '@/types/businessEvent';
+import type { ProjectEvent } from '@/types/projectEvent';
 
 /**
- * 사업 마일스톤 간트차트 (23_gantt_milestone.md 23.3).
- * 테스크 등록/수정/삭제는 system_events(대시보드 다가오는 일정)로 자동 동기화된다.
- * 바 드래그(날짜)·상태 변경·행 순서 변경은 즉시 저장하며, 선후관계는 강제 조정하지 않는다.
+ * 프로젝트 마일스톤 간트차트 (23_gantt_milestone.md 23.3).
+ * 사업(BusinessCalendarBlock)과 동일 구조. project_events → system_events 자동 동기화.
  */
-export function BusinessCalendarBlock({
-  businessId,
+export function ProjectCalendarBlock({
+  projectId,
   rangeStart,
   rangeEnd,
 }: {
-  businessId: string;
+  projectId: string;
   rangeStart?: string;
   rangeEnd?: string;
 }) {
-  const { events } = useBusinessEvents(businessId);
-  const { patch, reorder } = useBusinessEventMutations(businessId);
-  const { managers } = useEntityManagers('business', businessId);
+  const { events } = useProjectEvents(projectId);
+  const { patch, reorder } = useProjectEventMutations(projectId);
+  const { managers } = useEntityManagers('project', projectId);
   const toast = useAppToast();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [editing, setEditing] = useState<BusinessEvent | undefined>();
+  const [editing, setEditing] = useState<ProjectEvent | undefined>();
 
-  // 담당자 후보 = 사업에 배정된 담당자(선수).
+  // 담당자 후보 = 프로젝트에 배정된 담당자(선수).
   const managerOptions = useMemo(
     () =>
       managers
@@ -115,9 +114,9 @@ export function BusinessCalendarBlock({
         onReorder={handleReorder}
       />
 
-      <BusinessEventFormDrawer
+      <ProjectEventFormDrawer
         open={drawerOpen}
-        businessId={businessId}
+        projectId={projectId}
         event={editing}
         managerOptions={managerOptions}
         rangeStart={rangeStart}
