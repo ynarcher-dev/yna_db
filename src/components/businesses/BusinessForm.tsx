@@ -3,24 +3,23 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Input, InputNumber, DatePicker, Select, Button } from 'antd';
 import dayjs from 'dayjs';
 import { businessSchema, type BusinessInput } from '@/schemas/business';
-import { BUSINESS_STATUS_OPTIONS } from '@/lib/labels';
+import { BUSINESS_STATUS_OPTIONS, BUSINESS_CLASSIFICATION_OPTIONS } from '@/lib/labels';
 import { BUSINESS_SECTIONS, DEFAULT_BUSINESS_SECTIONS } from '@/lib/businessSections';
 import { SectionVisibilityField } from '@/components/common/SectionVisibilityField';
 
 /**
  * 사업 등록/수정 폼 (7_businesses.md 7.3, 17_conventions.md 3장). 등록·수정 공용.
- * 기본 정보(사업명·기수·예산·기간·모집마감·설명)만 다룬다. 매핑·일정은 상세에서 관리.
+ * 기본 정보(사업명·구분·상태·기수·매출·이익·기간·설명)만 다룬다. 매핑·일정은 상세에서 관리.
  */
 const EMPTY: BusinessInput = {
   name: '',
+  classification: 'public',
   status: 'pending',
   generation: 1,
-  budget: 0,
   revenue: 0,
   profit: 0,
   startDate: '',
   endDate: '',
-  recruitmentDeadline: '',
   description: '',
   sections: DEFAULT_BUSINESS_SECTIONS,
 };
@@ -66,57 +65,48 @@ export function BusinessForm({
         <FieldError message={errors.name?.message} />
       </div>
 
-      <div>
-        <label className="mb-1 block text-sm text-yna-main">진행 상태 *</label>
-        <Controller
-          name="status"
-          control={control}
-          render={({ field }) => (
-            <Select {...field} className="w-full" options={BUSINESS_STATUS_OPTIONS} />
-          )}
-        />
-        <FieldError message={errors.status?.message} />
-      </div>
-
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="mb-1 block text-sm text-yna-main">기수 *</label>
+          <label className="mb-1 block text-sm text-yna-main">구분 *</label>
           <Controller
-            name="generation"
+            name="classification"
             control={control}
             render={({ field }) => (
-              <InputNumber
-                className="w-full"
-                min={1}
-                value={field.value}
-                onChange={(v) => field.onChange(typeof v === 'number' ? v : 1)}
-                onBlur={field.onBlur}
-                addonAfter="기"
-              />
+              <Select {...field} className="w-full" options={BUSINESS_CLASSIFICATION_OPTIONS} />
             )}
           />
-          <FieldError message={errors.generation?.message} />
+          <FieldError message={errors.classification?.message} />
         </div>
         <div>
-          <label className="mb-1 block text-sm text-yna-main">운영 예산 *</label>
+          <label className="mb-1 block text-sm text-yna-main">진행 상태 *</label>
           <Controller
-            name="budget"
+            name="status"
             control={control}
             render={({ field }) => (
-              <InputNumber
-                className="w-full"
-                min={0}
-                value={field.value}
-                onChange={(v) => field.onChange(typeof v === 'number' ? v : 0)}
-                onBlur={field.onBlur}
-                formatter={(v) => `${v ?? ''}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                parser={(v) => Number((v ?? '').replace(/,/g, '')) || 0}
-                addonAfter="원"
-              />
+              <Select {...field} className="w-full" options={BUSINESS_STATUS_OPTIONS} />
             )}
           />
-          <FieldError message={errors.budget?.message} />
+          <FieldError message={errors.status?.message} />
         </div>
+      </div>
+
+      <div>
+        <label className="mb-1 block text-sm text-yna-main">기수 *</label>
+        <Controller
+          name="generation"
+          control={control}
+          render={({ field }) => (
+            <InputNumber
+              className="w-full"
+              min={1}
+              value={field.value}
+              onChange={(v) => field.onChange(typeof v === 'number' ? v : 1)}
+              onBlur={field.onBlur}
+              addonAfter="기"
+            />
+          )}
+        />
+        <FieldError message={errors.generation?.message} />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -194,24 +184,6 @@ export function BusinessForm({
           />
           <FieldError message={errors.endDate?.message} />
         </div>
-      </div>
-
-      <div>
-        <label className="mb-1 block text-sm text-yna-main">모집 마감일</label>
-        <Controller
-          name="recruitmentDeadline"
-          control={control}
-          render={({ field }) => (
-            <DatePicker
-              className="w-full"
-              placeholder="모집 마감일 (시작일 이전)"
-              value={field.value ? dayjs(field.value) : null}
-              onChange={(d) => field.onChange(d ? d.format('YYYY-MM-DD') : '')}
-              onBlur={field.onBlur}
-            />
-          )}
-        />
-        <FieldError message={errors.recruitmentDeadline?.message} />
       </div>
 
       <div>

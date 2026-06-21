@@ -11,6 +11,7 @@ import type {
   BusinessManagerRole,
   BusinessStartupStatus,
   BusinessStatus,
+  BusinessClassification,
   ProjectPriority,
   ProjectStage,
   ProjectType,
@@ -338,7 +339,7 @@ export const PROJECT_PRIORITY_COLOR: Record<ProjectPriority, BadgeTone> = {
 };
 
 /**
- * 사업 진행 상태 (businesses.status, 0056). 프로젝트(projects.stage)와 동일한 5단계 —
+ * 사업 진행 상태 (businesses.status, 0059). 프로젝트(projects.stage)와 동일한 5단계 —
  * 사업·M&A·신사업 목록 '상태' 컬럼을 동일하게 렌더하기 위해 라벨/톤을 맞춘다.
  */
 export const BUSINESS_STATUS_VALUES = [
@@ -368,6 +369,26 @@ export const BUSINESS_STATUS_COLOR: Record<BusinessStatus, BadgeTone> = {
   completed: 'blue',
   suspended: 'gold',
   canceled: 'blue',
+};
+
+/** 사업 구분 (businesses.classification, 0061) — 공공/민간/매출. */
+export const BUSINESS_CLASSIFICATION_VALUES = ['public', 'private', 'sales'] as const;
+
+export const BUSINESS_CLASSIFICATION_LABEL: Record<BusinessClassification, string> = {
+  public: '공공',
+  private: '민간',
+  sales: '매출',
+};
+
+export const BUSINESS_CLASSIFICATION_OPTIONS = (
+  Object.keys(BUSINESS_CLASSIFICATION_LABEL) as BusinessClassification[]
+).map((value) => ({ value, label: BUSINESS_CLASSIFICATION_LABEL[value] }));
+
+/** 구분 톤 — 분류(카테고리) 배지라 규칙상 전부 neutral(흰/회). */
+export const BUSINESS_CLASSIFICATION_COLOR: Record<BusinessClassification, BadgeTone> = {
+  public: 'neutral',
+  private: 'neutral',
+  sales: 'neutral',
 };
 
 /** 사업 운영 심사역 역할 (business_managers.role) */

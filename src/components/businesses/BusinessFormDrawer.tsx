@@ -20,14 +20,13 @@ interface BusinessFormDrawerProps {
 function toInput(p: Business): BusinessInput {
   return {
     name: p.name,
+    classification: p.classification,
     status: p.status,
     generation: p.generation,
-    budget: p.budget,
     revenue: p.revenue,
     profit: p.profit,
     startDate: p.startDate,
     endDate: p.endDate,
-    recruitmentDeadline: p.recruitmentDeadline,
     description: p.description,
     sections: p.sections,
   };

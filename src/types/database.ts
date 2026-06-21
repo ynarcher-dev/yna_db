@@ -21,10 +21,13 @@ export type ProjectType = 'm_and_a' | 'new_business' | 'other';
 export type ProjectPriority = 'high' | 'medium' | 'low';
 
 /**
- * 사업 진행 상태 (businesses.status, 0056). 발주자 확정(2026-06-21):
+ * 사업 진행 상태 (businesses.status, 0059). 발주자 확정(2026-06-21):
  * 사업·M&A·신사업 목록을 동일 구조로 통일하기 위해 projects.stage 와 동일한 5단계를 쓴다.
  */
 export type BusinessStatus = 'pending' | 'in_progress' | 'completed' | 'suspended' | 'canceled';
+
+/** 사업 구분 (businesses.classification, 0061) — 공공/민간/매출. */
+export type BusinessClassification = 'public' | 'private' | 'sales';
 
 /** 사업 참여 상태 (business_startups.status) */
 export type BusinessStartupStatus =

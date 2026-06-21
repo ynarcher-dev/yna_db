@@ -20,16 +20,18 @@ interface ManagerJoinConfig {
   parentTable: string;
   /** 운영 역할(role) 컬럼 보유 여부 — 사업 전용 */
   hasRole?: boolean;
+  /** 참여율(투입 비중)·투입 기간·잠금 컬럼 보유 여부 — 사업·프로젝트 전용 (0062) */
+  hasParticipation?: boolean;
 }
 
 const CONFIG: Record<ManagerEntityKind, ManagerJoinConfig> = {
-  project: { table: 'project_managers', fk: 'project_id', parentTable: 'projects' },
+  project: { table: 'project_managers', fk: 'project_id', parentTable: 'projects', hasParticipation: true },
   startup: { table: 'startup_managers', fk: 'startup_id', parentTable: 'startups' },
-  business: { table: 'business_managers', fk: 'business_id', parentTable: 'businesses', hasRole: true },
+  business: { table: 'business_managers', fk: 'business_id', parentTable: 'businesses', hasRole: true, hasParticipation: true },
   fund: { table: 'fund_managers', fk: 'fund_id', parentTable: 'funds' },
 };
 
-/** 담당자 1건 (조인 행 + 심사역 도메인 객체 + (사업) 역할). */
+/** 담당자 1건 (조인 행 + 심사역 도메인 객체 + (사업) 역할 + (사업·프로젝트) 참여율). */
 export interface EntityManager {
   /** 조인 행 id (해제 시 사용) */
   id: string;
@@ -37,6 +39,13 @@ export interface EntityManager {
   manager: Manager | null;
   /** 운영 역할 (사업만; 그 외 undefined) */
   role?: BusinessManagerRole;
+  /** 참여율 % (사업·프로젝트만). 미부여 시 null */
+  participationRate?: number | null;
+  /** 투입 기간 시작·종료 (YYYY-MM-DD). 미부여 시 null */
+  periodStart?: string | null;
+  periodEnd?: string | null;
+  /** 참여율 부여 후 잠금. true 면 관리자만 수정/해제 가능 */
+  locked?: boolean;
   createdAt: string;
 }
 
@@ -44,6 +53,10 @@ export interface EntityManager {
 interface ManagerJoinRow {
   id: string;
   role?: BusinessManagerRole;
+  participation_rate?: number | null;
+  period_start?: string | null;
+  period_end?: string | null;
+  locked?: boolean;
   created_at: string;
   manager: ManagerRow | null;
 }
@@ -55,7 +68,10 @@ export function useEntityManagers(kind: ManagerEntityKind, entityId: string | un
     enabled: Boolean(entityId),
     queryFn: async (): Promise<EntityManager[]> => {
       // 목록(managerColumns)과 동일한 컬럼(직급·소속·관심분야)을 표시하기 위해 심사역을 풀 임베드한다.
-      const cols = `id, ${cfg.hasRole ? 'role, ' : ''}created_at, manager:managers(*, department:departments!managers_department_id_fkey(name, company), team:teams!managers_team_id_fkey(name))`;
+      const participationCols = cfg.hasParticipation
+        ? 'participation_rate, period_start, period_end, locked, '
+        : '';
+      const cols = `id, ${cfg.hasRole ? 'role, ' : ''}${participationCols}created_at, manager:managers(*, department:departments!managers_department_id_fkey(name, company), team:teams!managers_team_id_fkey(name))`;
       let q = supabase.from(cfg.table).select(cols).eq(cfg.fk, entityId as string);
       // 사업은 운영총괄(lead) 먼저, 그다음 배정순
       if (cfg.hasRole) q = q.order('role', { ascending: true });
@@ -66,6 +82,10 @@ export function useEntityManagers(kind: ManagerEntityKind, entityId: string | un
         id: r.id,
         manager: r.manager ? mapManagerRow(r.manager) : null,
         role: r.role,
+        participationRate: r.participation_rate ?? null,
+        periodStart: r.period_start ?? null,
+        periodEnd: r.period_end ?? null,
+        locked: r.locked ?? false,
         createdAt: r.created_at,
       }));
     },
@@ -109,7 +129,32 @@ export function useEntityManagerMutations(kind: ManagerEntityKind, entityId: str
     onSuccess: invalidate,
   });
 
-  // 담당자 배정 해제(조인 행 실제 삭제). 작성자 행은 DB 트리거가 차단해 에러를 던진다.
+  // 참여율(투입 비중) 일괄 부여 (사업·프로젝트) — 카드에 배정된 전원을 한 번에 부여한다.
+  // 투입 기간은 전원 공통, 참여율은 인원별. 부여 즉시 locked=true 로 잠그며,
+  // 잠긴 행의 재수정은 RLS 상 관리자(admin)만 가능하다(0062).
+  const setParticipationBulk = useMutation({
+    mutationFn: async (input: {
+      periodStart: string;
+      periodEnd: string;
+      allocations: { id: string; rate: number }[];
+    }) => {
+      for (const a of input.allocations) {
+        const { error } = await supabase
+          .from(cfg.table)
+          .update({
+            participation_rate: a.rate,
+            period_start: input.periodStart,
+            period_end: input.periodEnd,
+            locked: true,
+          })
+          .eq('id', a.id);
+        if (error) throw error;
+      }
+    },
+    onSuccess: invalidate,
+  });
+
+  // 담당자 배정 해제(조인 행 실제 삭제). 잠긴 행은 RLS 상 관리자만 해제 가능하다(0062).
   const remove = useMutation({
     mutationFn: async (joinId: string) => {
       const { error } = await supabase.from(cfg.table).delete().eq('id', joinId);
@@ -118,5 +163,5 @@ export function useEntityManagerMutations(kind: ManagerEntityKind, entityId: str
     onSuccess: invalidate,
   });
 
-  return { add, updateRole, remove };
+  return { add, updateRole, setParticipationBulk, remove };
 }

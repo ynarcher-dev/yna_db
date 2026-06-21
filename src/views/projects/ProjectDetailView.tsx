@@ -14,7 +14,7 @@ import { ProjectFormDrawer } from '@/components/projects/ProjectFormDrawer';
 import { EntityManagersPanel } from '@/components/common/EntityManagersPanel';
 import { ProjectLinksPanel } from '@/components/projects/ProjectLinksPanel';
 import { EntityFilesBlock } from '@/components/common/EntityFilesBlock';
-import { formatDate, formatKRWMillions } from '@/lib/formatters';
+import { formatDate, formatKRW } from '@/lib/formatters';
 import type { ProjectDomain } from './projectDomain';
 
 /**
@@ -96,8 +96,8 @@ export function ProjectDetailView({ domain }: { domain: ProjectDomain }) {
           <Descriptions.Item label="예상 종료일">
             {project.endDate ? formatDate(project.endDate) : '-'}
           </Descriptions.Item>
-          <Descriptions.Item label="매출">{formatKRWMillions(project.revenue)}</Descriptions.Item>
-          <Descriptions.Item label="이익">{formatKRWMillions(project.profit)}</Descriptions.Item>
+          <Descriptions.Item label="매출">{formatKRW(project.revenue)}</Descriptions.Item>
+          <Descriptions.Item label="이익">{formatKRW(project.profit)}</Descriptions.Item>
           <Descriptions.Item label="작성자">{project.authorName || '관리자'}</Descriptions.Item>
           <Descriptions.Item label="등록일">{formatDate(project.createdAt)}</Descriptions.Item>
           <Descriptions.Item label="수정일">{formatDate(project.updatedAt)}</Descriptions.Item>
@@ -113,7 +113,12 @@ export function ProjectDetailView({ domain }: { domain: ProjectDomain }) {
 
       {/* 담당자(다대다) 배정 패널 — 담당자는 모두 자유롭게 추가/해제(작성자 필수 편입 폐지, 0054). */}
       {project.sections.managers ? (
-        <EntityManagersPanel kind="project" entityId={project.id} />
+        <EntityManagersPanel
+          kind="project"
+          entityId={project.id}
+          defaultPeriodStart={project.startDate}
+          defaultPeriodEnd={project.endDate}
+        />
       ) : null}
 
       {/* 매칭 스타트업·협력사 매핑 패널 (좌우 2열) */}

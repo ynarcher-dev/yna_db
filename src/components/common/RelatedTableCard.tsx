@@ -18,6 +18,8 @@ export interface RelatedTableCardProps<T> {
   rowKey?: string;
   /** 표 아래 편집 컨트롤 슬롯 (읽기 전용 패널은 생략). */
   footer?: ReactNode;
+  /** 제목 우측 액션 슬롯 (예: 참여율 일괄 부여 버튼). */
+  headerAction?: ReactNode;
 }
 
 /**
@@ -37,6 +39,7 @@ export function RelatedTableCard<T extends object>({
   isLoading,
   rowKey = 'id',
   footer,
+  headerAction,
 }: RelatedTableCardProps<T>) {
   const navigate = useNavigate();
 
@@ -44,10 +47,13 @@ export function RelatedTableCard<T extends object>({
 
   return (
     <div className="rounded-lg border border-yna-border bg-white p-6">
-      <h2 className="mb-3 text-base font-semibold text-yna-main">
-        {title}
-        <span className="ml-1 text-xs font-normal text-yna-point">(연동)</span>
-      </h2>
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <h2 className="text-base font-semibold text-yna-main">
+          {title}
+          <span className="ml-1 text-xs font-normal text-yna-point">(연동)</span>
+        </h2>
+        {headerAction}
+      </div>
 
       {isEmpty ? (
         <EmptyState message={emptyText} />

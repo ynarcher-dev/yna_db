@@ -13,7 +13,8 @@ import { BusinessStartupsPanel } from '@/components/businesses/BusinessStartupsP
 import { BusinessPartnersPanel } from '@/components/businesses/BusinessPartnersPanel';
 import { BusinessCalendarBlock } from '@/components/businesses/BusinessCalendarBlock';
 import { EntityFilesBlock } from '@/components/common/EntityFilesBlock';
-import { formatDate, formatKRWMillions } from '@/lib/formatters';
+import { BusinessClassificationTag } from '@/components/businesses/BusinessClassificationTag';
+import { formatDate, formatKRW } from '@/lib/formatters';
 
 /**
  * 사업 상세 (7_businesses.md 7.3).
@@ -83,17 +84,14 @@ export function BusinessDetailView() {
       <div className="rounded-lg border border-yna-border bg-white p-6">
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <h1 className="text-2xl font-bold tracking-tight text-yna-main">{business.name}</h1>
+          <BusinessClassificationTag classification={business.classification} />
           <span className="rounded-full bg-yna-bg px-2 py-0.5 text-sm text-yna-sub">
             {business.generation}기
           </span>
         </div>
         <Descriptions column={{ xs: 1, md: 2 }} size="small">
-          <Descriptions.Item label="운영 예산">{formatKRWMillions(business.budget)}</Descriptions.Item>
-          <Descriptions.Item label="모집 마감일">
-            {business.recruitmentDeadline ? formatDate(business.recruitmentDeadline) : '-'}
-          </Descriptions.Item>
-          <Descriptions.Item label="매출">{formatKRWMillions(business.revenue)}</Descriptions.Item>
-          <Descriptions.Item label="이익">{formatKRWMillions(business.profit)}</Descriptions.Item>
+          <Descriptions.Item label="매출">{formatKRW(business.revenue)}</Descriptions.Item>
+          <Descriptions.Item label="이익">{formatKRW(business.profit)}</Descriptions.Item>
           <Descriptions.Item label="진행 기간">
             {formatDate(business.startDate)} ~ {formatDate(business.endDate)}
           </Descriptions.Item>
@@ -112,7 +110,12 @@ export function BusinessDetailView() {
 
       {/* 담당자 매핑 (다대다 + 운영 역할) — 담당자는 모두 자유롭게 추가/해제(작성자 필수 편입 폐지, 0054). */}
       {business.sections.managers ? (
-        <EntityManagersPanel kind="business" entityId={business.id} />
+        <EntityManagersPanel
+          kind="business"
+          entityId={business.id}
+          defaultPeriodStart={business.startDate}
+          defaultPeriodEnd={business.endDate}
+        />
       ) : null}
 
       {/* 참여 스타트업 매핑 (보육 상태) */}

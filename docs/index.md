@@ -70,6 +70,7 @@ graph TD
 *   **[13. 배포 및 CI/CD 가이드](13_deployment.md)**: AWS S3+CloudFront 인프라 구축 및 GitHub Actions 자동화 배포 가이드
 *   **[21. 매칭 프로그램 관리](21_matching_programs.md)**: 지원사업(TIPS, LIPS 등) 현황 관리 및 보육 기업 신청/선정/매칭 이력 모니터링
 *   **[22. 투자 자료실](22_invest_archives.md)**: 공통 서식, 템플릿, 시장분석 보고서 등 게시판형 투자 업무 자료 공유 기능
+*   **[23. 사업 마일스톤 간트차트](23_gantt_milestone.md)**: 기존 마일스톤 캘린더를 Gantt Chart 형식으로 개편하여 참여 선수(담당자)별 테스크를 자율적으로 조율하는 실무 협업 도구
 
 ### 🔧 시스템·운영 보강 명세
 *   **[14. 인증 및 계정 관리 화면](14_auth.md)**: 로그인/온보딩/비밀번호 재설정 화면 및 Admin 계정 관리·Edge Function 플로우

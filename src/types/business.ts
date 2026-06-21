@@ -1,5 +1,5 @@
 import { normalizeBusinessSections, type BusinessSections } from '@/lib/businessSections';
-import type { BusinessStatus } from '@/types/database';
+import type { BusinessStatus, BusinessClassification } from '@/types/database';
 
 /** 사업 (camelCase 화면 모델, 7_businesses.md). 기수별 AC 배치/정부지원사업. */
 export interface Business {
@@ -7,10 +7,10 @@ export interface Business {
   name: string;
   /** 기수 (1, 2, 3 …) */
   generation: number;
-  /** 진행 상태 (0056, projects.stage 와 동일한 5단계) */
+  /** 구분 (공공/민간/매출, 0061) */
+  classification: BusinessClassification;
+  /** 진행 상태 (0059, projects.stage 와 동일한 5단계) */
   status: BusinessStatus;
-  /** 운영 예산 (원) */
-  budget: number;
   /** 매출 (원, 0 이상) */
   revenue: number;
   /** 이익 (원, 실제 회사 유입액. 손실이면 음수) */
@@ -19,8 +19,6 @@ export interface Business {
   startDate: string;
   /** 사업 종료일 (YYYY-MM-DD) */
   endDate: string;
-  /** 참가 스타트업 모집 마감일 (YYYY-MM-DD). 없으면 빈 문자열 */
-  recruitmentDeadline: string;
   /** 사업 상세 설명 */
   description: string;
   deletedAt?: string;
@@ -40,13 +38,12 @@ export interface BusinessRow {
   id: string;
   name: string;
   generation: number;
+  classification: BusinessClassification;
   status: BusinessStatus;
-  budget: number | string;
   revenue: number | string;
   profit: number | string;
   start_date: string;
   end_date: string;
-  recruitment_deadline: string | null;
   description: string | null;
   deleted_at: string | null;
   created_at: string;
@@ -62,13 +59,12 @@ export function mapBusinessRow(row: BusinessRow): Business {
     id: row.id,
     name: row.name,
     generation: row.generation,
+    classification: row.classification,
     status: row.status,
-    budget: Number(row.budget) || 0,
     revenue: Number(row.revenue) || 0,
     profit: Number(row.profit) || 0,
     startDate: row.start_date,
     endDate: row.end_date,
-    recruitmentDeadline: row.recruitment_deadline ?? '',
     description: row.description ?? '',
     deletedAt: row.deleted_at ?? undefined,
     createdAt: row.created_at,

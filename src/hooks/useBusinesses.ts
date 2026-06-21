@@ -95,14 +95,13 @@ export function useBusinessOptions() {
 function toRow(input: BusinessInput) {
   return {
     name: input.name.trim(),
+    classification: input.classification,
     status: input.status,
     generation: input.generation,
-    budget: input.budget,
     revenue: input.revenue,
     profit: input.profit,
     start_date: input.startDate,
     end_date: input.endDate,
-    recruitment_deadline: input.recruitmentDeadline ? input.recruitmentDeadline : null,
     description: input.description ? input.description.trim() : null,
     sections: input.sections,
   };
